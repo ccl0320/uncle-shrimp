@@ -109,7 +109,7 @@
     var demoPromo = { enabled: false, name: "新開張試行 全館 7 折", pay_percent: 70, start_at: null, end_at: new Date(Date.now() + 17 * 864e5).toISOString(), free_shipping_threshold: 520 };
     var demoLive = () => { const n = Date.now(); const on = demoPromo.enabled && demoPromo.pay_percent < 100 && (!demoPromo.start_at || n >= Date.parse(demoPromo.start_at)) && (!demoPromo.end_at || n < Date.parse(demoPromo.end_at)); return on ? { active: true, name: demoPromo.name, pay_percent: demoPromo.pay_percent, end_at: demoPromo.end_at } : { active: false }; };
     var demoProducts = [
-      { id: "original", name: "原味手工蝦餅", spec: "單包 100g", price: 100, active: true, sort: 1, tag: "招牌", description: "經典原味蝦餅，小鍋現炸、酥脆不油膩。", image_url: "../assets/bag.webp" },
+      { id: "original", name: "原味手工蝦餅", spec: "單包 100g", price: 100, active: true, sort: 1, tag: "招牌", description: "選用印尼進口蝦餅原料，由舅舅在台灣手工油炸，做出金黃酥脆、讓大人小孩一口接一口的好滋味。", image_url: "../assets/bag.webp" },
       { id: "family", name: "家庭分享包", spec: "大包 250g", price: 399, active: false, sort: 2, tag: "", description: "一家人一起吃剛剛好。", image_url: "../assets/bowl.webp" },
       { id: "trio", name: "原味三入組", spec: "100g × 3 包", price: 260, active: true, sort: 3, tag: "人氣", description: "比單買更划算。", image_url: null },
       { id: "gift", name: "好蝦送禮盒", spec: "100g × 6 包・附提袋", price: 990, active: false, sort: 4, tag: "送禮", description: "伴手禮首選。", image_url: null }
