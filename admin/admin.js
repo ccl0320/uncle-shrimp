@@ -69,6 +69,8 @@
       setPromo: (p) => rpc("admin_set_promo", { p }),
       passwordChanged: () => rpc("admin_password_changed"),
       getCap: () => rpc("admin_get_capacity"),
+      getShip: () => rpc("admin_get_shipping"),
+      setShip: (p) => rpc("admin_set_shipping", { p }),
       setCap: (p) => rpc("admin_set_capacity", { p }),
       listStaff: () => rpc("admin_list_staff"),
       updateStaff: (uid, role, active) => rpc("admin_update_staff", { p_user: uid, p_role: role, p_active: active }),
@@ -121,6 +123,8 @@
       getPromo: () => wait({ ...demoPromo, live: demoLive() }),
       passwordChanged: () => wait({ email: "owner@example.com", role: "owner", aal: "aal2" }),
       getCap: () => wait({ ...demoCap }),
+      getShip: () => wait(JSON.parse(JSON.stringify(demoShip))),
+      setShip: (p) => { log.unshift({ at: new Date().toISOString(), actor_email: "owner@example.com", action: "update_shipping", detail: { free_from: demoShip.free_shipping_threshold, free: p.free_shipping_threshold } }); demoShip.free_shipping_threshold = p.free_shipping_threshold; p.methods.forEach((x) => Object.assign(demoShip.methods.find((y) => y.id === x.id), x)); return wait(JSON.parse(JSON.stringify(demoShip))); },
       setCap: (p) => { log.unshift({ at: new Date().toISOString(), actor_email: "owner@example.com", action: "update_capacity", detail: { weekly_from: demoCap.weekly_pack_limit, weekly: p.weekly_pack_limit, max_qty_from: demoCap.max_qty_per_item, max_qty: p.max_qty_per_item } }); Object.assign(demoCap, p); return wait({ ...demoCap }); },
       listStaff: () => wait(demoStaff.map((x) => ({ ...x }))),
       createStaff: (email, password, role) => { if (demoStaff.some((x) => x.email === email.toLowerCase())) return Promise.reject(new Error("email_exists")); demoStaff.push({ user_id: "demo-" + Date.now(), email: email.toLowerCase(), role, active: true, must_change_password: true, mfa: false, created_at: new Date().toISOString(), last_sign_in_at: null, is_me: false }); log.unshift({ at: new Date().toISOString(), actor_email: "owner@example.com", action: "create_staff", detail: { email, role } }); return wait({}); },
@@ -131,6 +135,7 @@
       saveProduct: (p) => { const i = demoProducts.findIndex((x) => x.id === p.id); const row = { ...p, price: Number(p.price), sale_price: p.sale_price === "" || p.sale_price == null ? null : Number(p.sale_price) }; if (row.sale_price != null && row.sale_price >= row.price) return Promise.reject(new Error("invalid_sale")); if (i >= 0) demoProducts[i] = row; else demoProducts.push(row); log.unshift({ at: new Date().toISOString(), actor_email: "owner@example.com", action: i >= 0 ? "update_product" : "create_product", detail: { product: p.id, name: p.name, price_to: p.price } }); return wait(row); },
       uploadImage: (blob) => wait(URL.createObjectURL(blob))
     };
+    var demoShip = { free_shipping_threshold: 520, methods: [{ id: "home", name: "宅配到府", note: "黑貓或郵局宅配，約 3–5 個工作天出貨", fee: 150, active: true }, { id: "cvs", name: "超商取貨", note: "7-11 / 全家，填寫取貨門市名稱", fee: 70, active: true }, { id: "pickup", name: "預約自取", note: "自取地點與時間，將由我們另行聯繫確認", fee: 0, active: true }] };
     var demoCap = { weekly_pack_limit: 200, max_qty_per_item: 10, used: 37, week_start: new Date().toISOString() };
     var demoStaff = [
       { user_id: "demo-owner", email: "owner@example.com", role: "owner", active: true, must_change_password: false, mfa: true, created_at: new Date(Date.now() - 864e5 * 3).toISOString(), last_sign_in_at: new Date().toISOString(), is_me: true },
@@ -365,16 +370,16 @@
     $("#paneStaff").hidden = t.dataset.tab !== "staff";
     if (t.dataset.tab === "staff") loadStaff();
     if (t.dataset.tab === "audit") loadAudit();
-    if (t.dataset.tab === "products") { loadProducts(); loadPromo(); loadCap(); }
+    if (t.dataset.tab === "products") { loadProducts(); loadPromo(); loadCap(); loadShip(); }
   }));
-  const ACTION = { update_capacity: "修改接單上限", create_staff: "新增員工", update_staff: "修改員工", remove_staff: "移除員工", reset_staff_password: "重設員工密碼", staff_password_set: "員工設定新密碼", update_promo: "修改促銷活動", view_order: "查看訂單個資", update_order: "更新訂單", purge_pii: "清除舊個資", create_product: "新增商品", update_product: "修改商品" };
+  const ACTION = { update_shipping: "修改運費", update_capacity: "修改接單上限", create_staff: "新增員工", update_staff: "修改員工", remove_staff: "移除員工", reset_staff_password: "重設員工密碼", staff_password_set: "員工設定新密碼", update_promo: "修改促銷活動", view_order: "查看訂單個資", update_order: "更新訂單", purge_pii: "清除舊個資", create_product: "新增商品", update_product: "修改商品" };
   async function loadAudit() {
     $("#auditList").innerHTML = `<li class="muted">載入中…</li>`;
     try {
       const rows = await api.audit();
       $("#auditList").innerHTML = rows.length ? rows.map((r) => {
         const d = r.detail || {};
-        const extra = r.action === "update_order" ? `${STATUS_NAME[d.from] || d.from || ""} → ${STATUS_NAME[d.to] || d.to || ""}` : r.action === "purge_pii" ? `清除 ${d.rows} 筆` : r.action === "update_capacity" ? `每週 ${d.weekly == null ? "不限" : d.weekly + " 包"}・每項最多 ${d.max_qty} 件` : /staff/.test(r.action) ? `${d.email || ""}${d.role ? `（${d.role_from && d.role_from !== d.role ? (d.role_from === "owner" ? "店長" : "員工") + " → " : ""}${d.role === "owner" ? "店長" : "員工"}）` : ""}${d.active === false && d.active_from !== false ? " 停用" : d.active === true && d.active_from === false ? " 啟用" : ""}` : r.action === "update_promo" ? `${d.enabled ? "開啟" : "關閉"}・${d.pay_percent ? zhe(d.pay_percent) : ""}${d.name ? "・" + d.name : ""}` : /product/.test(r.action) ? `${d.name || d.product || ""}${d.price_from != null && d.price_from !== d.price_to ? `（${fmt(d.price_from)} → ${fmt(d.price_to)}）` : ""}` : (d.order_no || "");
+        const extra = r.action === "update_order" ? `${STATUS_NAME[d.from] || d.from || ""} → ${STATUS_NAME[d.to] || d.to || ""}` : r.action === "purge_pii" ? `清除 ${d.rows} 筆` : r.action === "update_shipping" ? `免運門檻 ${fmt(d.free_from)} → ${fmt(d.free)}` : r.action === "update_capacity" ? `每週 ${d.weekly == null ? "不限" : d.weekly + " 包"}・每項最多 ${d.max_qty} 件` : /staff/.test(r.action) ? `${d.email || ""}${d.role ? `（${d.role_from && d.role_from !== d.role ? (d.role_from === "owner" ? "店長" : "員工") + " → " : ""}${d.role === "owner" ? "店長" : "員工"}）` : ""}${d.active === false && d.active_from !== false ? " 停用" : d.active === true && d.active_from === false ? " 啟用" : ""}` : r.action === "update_promo" ? `${d.enabled ? "開啟" : "關閉"}・${d.pay_percent ? zhe(d.pay_percent) : ""}${d.name ? "・" + d.name : ""}` : /product/.test(r.action) ? `${d.name || d.product || ""}${d.price_from != null && d.price_from !== d.price_to ? `（${fmt(d.price_from)} → ${fmt(d.price_to)}）` : ""}` : (d.order_no || "");
         return `<li><time>${esc(new Date(r.at).toLocaleString("zh-TW", { timeZone: "Asia/Taipei", hour12: false }))}</time><span><b>${esc(r.actor_email || "系統排程")}</b> ${esc(ACTION[r.action] || r.action)} ${esc(extra)}</span></li>`;
       }).join("") : `<li class="muted">還沒有紀錄</li>`;
     } catch (e) { $("#auditList").innerHTML = `<li class="err">${esc(msg(e))}</li>`; }
@@ -643,6 +648,43 @@
     b.disabled = true; m.textContent = "儲存中…";
     try { await api.setCap({ weekly_pack_limit: w === "" ? null : +w, max_qty_per_item: mx }); m.textContent = "已儲存，前台立即生效。"; loadCap(); }
     catch (e) { m.textContent = /owner_only/.test(e.message || "") ? "只有店長可以修改。" : msg(e); }
+    b.disabled = false;
+  });
+  // ------------------------------------------------------------------
+  // 運費設定
+  // ------------------------------------------------------------------
+  const SHIP_ERR = { invalid_free: "免運門檻請填 0 以上的整數。", invalid_fee: "運費請填 0～10000 的整數。", invalid_ship_name: "名稱請填 1～20 字。", invalid_ship_note: "說明請在 60 字以內。", need_one_shipping: "至少要開放一種取貨方式。", owner_only: "只有店長可以修改運費。" };
+  let shipRows = [];
+  async function loadShip() {
+    try {
+      const d = await api.getShip();
+      shipRows = d.methods || [];
+      $("#shipFree").value = d.free_shipping_threshold;
+      $("#shipList").innerHTML = shipRows.map((m, i) => `<li class="${m.active ? "" : "off"}" data-i="${i}">
+        <div class="sl-top"><b>${esc(m.name)}</b><label class="check"><input type="checkbox" data-f="active"${m.active ? " checked" : ""}> 開放</label></div>
+        <div class="row2">
+          <div><label>名稱</label><input data-f="name" maxlength="20" value="${esc(m.name)}"></div>
+          <div><label>運費（NT$）</label><input data-f="fee" type="number" inputmode="numeric" min="0" max="10000" step="1" value="${esc(m.fee)}"></div>
+        </div>
+        <label>說明（顯示在結帳頁）</label><input data-f="note" maxlength="60" value="${esc(m.note || "")}">
+      </li>`).join("");
+    } catch (e) { $("#shipMsg").textContent = msg(e); }
+  }
+  $("#shipList").addEventListener("change", (e) => { const li = e.target.closest("li"); if (li && e.target.dataset.f === "active") li.classList.toggle("off", !e.target.checked); });
+  $("#shipSave").addEventListener("click", async () => {
+    const b = $("#shipSave"), m = $("#shipMsg");
+    const free = $("#shipFree").value.trim();
+    if (!/^\d+$/.test(free)) { m.textContent = SHIP_ERR.invalid_free; return; }
+    const methods = [...document.querySelectorAll("#shipList li")].map((li) => {
+      const g = (f) => li.querySelector(`[data-f="${f}"]`);
+      return { id: shipRows[+li.dataset.i].id, name: g("name").value.trim(), fee: g("fee").value.trim(), note: g("note").value.trim(), active: g("active").checked };
+    });
+    if (!methods.some((x) => x.active)) { m.textContent = SHIP_ERR.need_one_shipping; return; }
+    if (methods.some((x) => !/^\d+$/.test(x.fee) || +x.fee > 10000)) { m.textContent = SHIP_ERR.invalid_fee; return; }
+    if (methods.some((x) => !x.name || x.name.length > 20)) { m.textContent = SHIP_ERR.invalid_ship_name; return; }
+    b.disabled = true; m.textContent = "儲存中…";
+    try { await api.setShip({ free_shipping_threshold: +free, methods: methods.map((x) => ({ ...x, fee: +x.fee })) }); m.textContent = "已儲存，前台立即生效。"; loadShip(); }
+    catch (e) { const k = Object.keys(SHIP_ERR).find((x) => (e.message || "").includes(x)); m.textContent = k ? SHIP_ERR[k] : msg(e); }
     b.disabled = false;
   });
   route();

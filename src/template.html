@@ -396,7 +396,7 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
       <div class="faq-grid">
         <details open><summary>多久會出貨？</summary><p>蝦餅為小鍋手工現炸，完成訂購並確認付款後，約 3 至 5 個工作天出貨。節慶檔期訂單較多，出貨時間可能延長。</p></details>
         <details><summary>原料是哪裡來的？</summary><p>蝦餅原料（生蝦餅片）為印尼進口，是舅舅在印尼工作時找到的穩定來源，由舅舅在台灣手工油炸、包裝。包裝上會依食品標示規定標示產地資訊。</p></details>
-        <details><summary>運費怎麼算？</summary><p>宅配 NT$150、超商取貨 NT$70，單筆訂單滿 NT$520 免運費。也可預約到店自取，不收運費。</p></details>
+        <details><summary>運費怎麼算？</summary><p id="shipFaq">宅配 NT$150、超商取貨 NT$70，單筆訂單滿 NT$520 免運費。也可預約到店自取，不收運費。</p></details>
         <details><summary>可以放多久？怎麼保存？</summary><p>未開封常溫保存約 3 個月，請放在陰涼乾燥處、避免陽光直射。開封後請盡快食用完畢，或用夾子密封保持酥脆。</p></details>
         <details><summary>有哪些過敏原？</summary><p>本產品含有蝦（甲殼類），並在處理其他海鮮的環境製作，對甲殼類或海鮮過敏者請勿食用。</p></details>
         <details><summary>可以大量訂購嗎？</summary><p>可以！公司行號、活動團購等大量訂購，請在訂購備註留言，或透過 LINE 聯繫我們報價。</p></details>
@@ -485,7 +485,7 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
     {id:"cvs",name:"超商取貨",note:"7-11 / 全家，填寫取貨門市名稱",fee:70},
     {id:"pickup",name:"預約自取",note:"自取地點與時間，將由我們另行聯繫確認",fee:0}
   ];
-  const FREE=520;
+  let FREE=520; // 免運門檻與運費以資料庫設定為準（後台可改）
   let PROMO=null; // {name,pay_percent,end_at}，由資料庫提供；實際金額以資料庫下單時計算為準
   const up=p=>p.sale_price!=null&&p.sale_price<p.price?p.sale_price:PROMO?Math.round(p.price*PROMO.pay_percent/100):p.price;
   const zhe=v=>(v%10?String(v):String(v/10))+" 折";
@@ -494,7 +494,7 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
   const DB=CFG.supabaseUrl&&CFG.supabaseAnonKey?{url:CFG.supabaseUrl,key:CFG.supabaseAnonKey}:null;
   // 舊版 anon key（eyJ 開頭）同時放在 Authorization；新版 publishable key 只放 apikey
   const dbAuth=()=>/^eyJ/.test(DB.key)?{apikey:DB.key,Authorization:"Bearer "+DB.key}:{apikey:DB.key};
-  const ORDER_ERR={too_many_orders:"這支手機一小時內下單次數太多，請稍後再試或直接 LINE 我們。",invalid_phone:"手機號碼格式不正確。",invalid_address:"請填寫收件地址或門市。",invalid_product:"有商品已下架，請重新整理頁面。",invalid_name:"請填寫收件人姓名。",invalid_qty:"商品數量超過上限，請調整數量。"};
+  const ORDER_ERR={too_many_orders:"這支手機一小時內下單次數太多，請稍後再試或直接 LINE 我們。",invalid_phone:"手機號碼格式不正確。",invalid_address:"請填寫收件地址或門市。",invalid_product:"有商品已下架，請重新整理頁面。",invalid_ship:"這個取貨方式目前暫停，請重新整理後選擇其他方式。",invalid_name:"請填寫收件人姓名。",invalid_qty:"商品數量超過上限，請調整數量。"};
   // LINE 官方帳號 ID（例："@unclesshrimp"）。填入後訂單會直接開啟與官方帳號的聊天室並帶入內容；
   // 留空時會開啟 LINE 分享畫面，由顧客自己選擇傳給店家。
   const LINE_OA="";
@@ -585,12 +585,12 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
         <div><div class="nm">${esc(p.name)}</div><div class="sub">${esc(p.spec)}・${up(p)<p.price?`<s class="was">${fmt(p.price)}</s>`:""}${fmt(up(p))}</div>
           <div class="qty sm" style="margin-top:6px"><button type="button" data-cstep="-1" data-for="${id}" aria-label="減少 ${esc(p.name)}">−</button><input type="number" min="1" max="10" value="${q}" data-cset="${id}" aria-label="${esc(p.name)} 數量"><button type="button" data-cstep="1" data-for="${id}" aria-label="增加 ${esc(p.name)}">+</button></div></div>
         <div class="right"><span class="line">${fmt(up(p)*q)}</span><button class="rm" type="button" data-rm="${id}">移除</button></div></li>`}).join("")}</ul>
-      <div class="ship-hint">${left>0?`再買 <b>${fmt(left)}</b> 就免運費${t.disc>0?"（以折扣後金額計算）":""}！`:`🎉 已達免運門檻 ${fmt(FREE)}`}<div class="ship-bar"><i style="width:${Math.min(100,t.sub/FREE*100)}%"></i></div></div>
+      ${FREE>0?`<div class="ship-hint">${left>0?`再買 <b>${fmt(left)}</b> 就免運費${t.disc>0?"（以折扣後金額計算）":""}！`:`🎉 已達免運門檻 ${fmt(FREE)}`}<div class="ship-bar"><i style="width:${Math.min(100,t.sub/FREE*100)}%"></i></div></div>`:""}
       <div class="totals">${t.disc>0?`<div><span>原價小計</span><span>${fmt(t.list)}</span></div><div><span>${PROMO?esc(PROMO.name)+"・":""}優惠折抵</span><span>−${fmt(t.disc)}</span></div>`:""}<div><span>商品小計</span><span>${fmt(t.sub)}</span></div><div><span>運費（${SHIP.find(x=>x.id===ship).name}）</span><span>${t.fee===0?"免運":fmt(t.fee)}</span></div><div class="grand"><span>應付總額</span><span>${fmt(t.total)}</span></div></div>`;
   }
 
   function renderChoices(){
-    $("#shipChoices").innerHTML=SHIP.map(s=>`<label class="choice"><input type="radio" name="ship" value="${s.id}" ${s.id===ship?"checked":""}><span><b>${s.name}</b><small>${s.note}</small></span><span class="fee">${s.fee?fmt(s.fee):"免運"}</span></label>`).join("");
+    $("#shipChoices").innerHTML=SHIP.map(s=>`<label class="choice"><input type="radio" name="ship" value="${s.id}" ${s.id===ship?"checked":""}><span><b>${esc(s.name)}</b><small>${esc(s.note)}</small></span><span class="fee">${s.fee?fmt(s.fee):"免運"}</span></label>`).join("");
     $("#payChoices").innerHTML=PAY.map(p=>{const off=p.disabled||(p.only&&!p.only.includes(ship));return `<label class="choice"><input type="radio" name="pay" value="${p.id}" ${p.id===pay&&!off?"checked":""} ${off?"disabled":""}><span><b>${esc(p.name)}</b><small>${p.disabled?p.note:(off?"此取貨方式不適用":p.note)}</small></span></label>`}).join("");
     const addr=$("#addrField"),lab=$("#addrLabel"),inp=$("#f-addr");
     if(ship==="pickup"){addr.hidden=true}else{addr.hidden=false;lab.innerHTML=(ship==="cvs"?"取貨門市（超商＋門市名稱）":"收件地址")+'<span class="req">*</span>';inp.placeholder=ship==="cvs"?"例：7-11 民生門市":"縣市、區、路段、門牌";inp.autocomplete=ship==="cvs"?"off":"street-address"}
@@ -678,6 +678,19 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
   });
 
   renderProducts();renderChoices();renderCart();
+  function shipFaq(){
+    const el=$("#shipFaq");if(!el)return;
+    const paid=SHIP.filter(x=>x.fee>0).map(x=>`${x.name} NT$${x.fee.toLocaleString("zh-TW")}`),free=SHIP.filter(x=>!x.fee).map(x=>x.name);
+    el.textContent=(paid.length?paid.join("、")+(FREE>0?`，單筆訂單滿 NT$${FREE.toLocaleString("zh-TW")} 免運費。`:"。"):"全部免運費。")+(free.length&&paid.length?`${free.join("、")}不收運費。`:"");
+  }
+  if(DB){fetch(DB.url.replace(/\/$/,"")+"/rest/v1/rpc/public_settings",{method:"POST",headers:{"Content-Type":"application/json","Content-Profile":"shop",...dbAuth()},body:"{}"})
+    .then(r=>r.ok?r.json():null).then(j=>{if(!j||!Array.isArray(j.shipping)||!j.shipping.length)return;
+      FREE=Math.max(0,+j.free_shipping_threshold||0);
+      const known=Object.fromEntries(SHIP.map(x=>[x.id,x]));
+      SHIP.splice(0,SHIP.length,...j.shipping.filter(x=>known[x.id]).map(x=>({id:x.id,name:String(x.name||known[x.id].name),note:String(x.note||""),fee:Math.max(0,+x.fee||0)})));
+      if(!SHIP.some(x=>x.id===ship))ship=SHIP[0].id;
+      shipFaq();renderChoices();renderCart();
+    }).catch(()=>{})}
   function showCap(){
     const bar=$("#capBar");if(!bar)return;
     if(!CAP||CAP.remaining==null){bar.hidden=true;document.querySelectorAll("[data-add]").forEach(b=>b.disabled=false);return}

@@ -9,7 +9,7 @@
 <title>舅是好蝦 訂單後台</title>
 <link rel="icon" href="../assets/logo.webp">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap">
-<link rel="stylesheet" href="admin.css?v=20261113g">
+<link rel="stylesheet" href="admin.css?v=20261113h">
 </head>
 <body>
 <header class="bar">
@@ -116,6 +116,15 @@
     </div>
 
     <div id="paneProducts" hidden>
+      <div class="card ship">
+        <h2>運費設定</h2>
+        <label for="shipFree">免運門檻（商品金額滿多少免運；0＝全部免運）</label>
+        <input id="shipFree" type="number" inputmode="numeric" min="0" max="1000000" step="1">
+        <ul class="shiplist" id="shipList"></ul>
+        <p class="muted small">運費在顧客下單時由資料庫計算。至少要開放一種取貨方式。</p>
+        <button class="btn primary" type="button" id="shipSave">儲存運費設定</button>
+        <p class="save-msg" id="shipMsg" role="status"></p>
+      </div>
       <div class="card cap">
         <h2>接單上限</h2>
         <p class="small muted" id="capUsed"></p>
@@ -203,6 +212,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="../config.js?v=20261113b"></script>
-<script src="admin.js?v=20261113g"></script>
+<script src="admin.js?v=20261113h"></script>
 </body>
 </html>

@@ -14,7 +14,7 @@
 - `config.js`：Supabase 網址與公開金鑰
 - `admin/`：訂單後台
 - `supabase/schema.sql`：資料表、權限規則、下單與後台函式
-- `supabase/002_products_admin.sql`、`003_promotions.sql`、`004_sale_price.sql`、`005_copy.sql`、`006_staff.sql`、`007_qty_limit.sql`：之後加上的功能，依序在 SQL Editor 執行（可重複執行）
+- `supabase/002_products_admin.sql`、`003_promotions.sql`、`004_sale_price.sql`、`005_copy.sql`、`006_staff.sql`、`007_qty_limit.sql`、`008_shipping.sql`：之後加上的功能，依序在 SQL Editor 執行（可重複執行）
 
 ## 部署：Cloudflare Pages
 1. Cloudflare → **Workers & Pages → Create → Pages → Connect to Git**，授權 GitHub 後選 `uncle-shrimp` repo。
@@ -114,7 +114,7 @@ select id, email, 'owner' from auth.users where email = 'owner@example.com';
 ## 修改商品
 - 店長登入後台 → **商品** 分頁：可改名稱、規格、價格、標籤、說明、排序、上下架，上傳商品圖片，或新增商品。存檔後前台立即更新。
 - 需先在 Supabase SQL Editor 執行 `supabase/002_products_admin.sql`（建立圖片儲存空間與權限，只有店長能上傳）。
-- 運費與免運門檻：Supabase **Table Editor → shop → shipping_methods / shop_settings**。
+- 運費與免運門檻：後台 **商品 → 運費設定**（需先執行 `supabase/008_shipping.sql`）。可改各取貨方式的名稱、運費、說明、開放／關閉與免運門檻，修改會記在操作紀錄。
 
 ## 促銷活動
 - 需先在 Supabase SQL Editor 執行 `supabase/003_promotions.sql`。
