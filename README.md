@@ -1,11 +1,11 @@
 # 舅是好蝦 Uncle’s Shrimp Chips
 
-手工炸蝦餅品牌網站、LINE 訂購與訂單後台。前台放在 GitHub Pages，訂單存在 Supabase（PostgreSQL）。
+手工炸蝦餅品牌網站、LINE 訂購與訂單後台。正式網站放在 Cloudflare Pages（GitHub repo 只當原始碼），訂單存在 Supabase（PostgreSQL）。
 
 | 頁面 | 網址 |
 |---|---|
-| 前台（顧客下單） | `https://ccl0320.github.io/uncle-shrimp/` |
-| 訂單後台 | `https://ccl0320.github.io/uncle-shrimp/admin/` |
+| 前台（顧客下單） | `https://uncle-shrimp.pages.dev/` |
+| 訂單後台 | `https://uncle-shrimp.pages.dev/admin/` |
 
 還沒設定 Supabase 時：前台只走 LINE 傳送，後台會以「示範模式」顯示假資料。
 
@@ -15,6 +15,23 @@
 - `admin/`：訂單後台
 - `supabase/schema.sql`：資料表、權限規則、下單與後台函式
 - `supabase/002_products_admin.sql`、`003_promotions.sql`、`004_sale_price.sql`、`005_copy.sql`、`006_staff.sql`、`007_qty_limit.sql`：之後加上的功能，依序在 SQL Editor 執行（可重複執行）
+
+## 部署：Cloudflare Pages
+1. Cloudflare → **Workers & Pages → Create → Pages → Connect to Git**，授權 GitHub 後選 `uncle-shrimp` repo。
+2. 建置設定：
+   - Production branch：`main`
+   - Framework preset：None
+   - Build command：`python3 src/build.py --dist`
+   - Build output directory：`dist`
+3. 按 **Save and Deploy**。之後每次推到 main 都會自動部署。網址是 `https://uncle-shrimp.pages.dev`（名稱被用走的話會不同，以畫面為準）。
+4. `dist/` 只放公開需要的檔案（前台、後台、圖片、config.js），原始碼、SQL、README 不會被放上網站。
+5. 安全標頭在 `_headers`（由 build.py 自動產生，含前台的 Content-Security-Policy）。
+
+換網址後要一起改：
+- Supabase → Authentication → URL Configuration：Site URL、Redirect URLs 改成新網址的 `/admin/`
+- Edge Function `shop-staff`：若不是 `uncle-shrimp.pages.dev`，在 Edge Functions → Secrets 新增 `ALLOWED_ORIGINS`
+- LINE LIFF 的 Endpoint URL
+- 停用 GitHub Pages：repo → Settings → Pages → Source 選 None（或 Unpublish）。之後 repo 也可以改成 Private，Cloudflare 照樣能部署。
 
 ## 一、建立 Supabase 訂單資料庫
 目前和 melissa-island 共用同一個 Supabase 專案。訂單資料全部放在獨立的 `shop` schema，和小島的 `public.island_docs` 互不影響。
@@ -33,8 +50,8 @@
    - Minimum password length 設 **12**，Password requirements 選「小寫、大寫、數字」
 2. **Multi-Factor**：確認 **TOTP** 為啟用（後台會強制每個管理員綁定驗證 App）。
 3. **URL Configuration**：
-   - Site URL：`https://ccl0320.github.io/uncle-shrimp/admin/`
-   - Redirect URLs 加入：`https://ccl0320.github.io/uncle-shrimp/admin/`
+   - Site URL：`https://uncle-shrimp.pages.dev/admin/`
+   - Redirect URLs 加入：`https://uncle-shrimp.pages.dev/admin/`
 4. **Rate Limits**：保留預設即可（登入失敗過多會被限制）。
 5. 付費方案另有「Leaked password protection（擋掉外洩過的密碼）」與「Session 閒置逾時」，營運後可考慮開啟。
 

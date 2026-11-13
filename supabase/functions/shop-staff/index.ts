@@ -9,7 +9,10 @@
 //  - 重設密碼只能對這家店員工名單裡的帳號，不能動到同一個 Supabase 專案的其他使用者
 import { createClient } from "npm:@supabase/supabase-js@2.45.4";
 
-const ALLOWED_ORIGINS = ["https://ccl0320.github.io"];
+// 允許呼叫的後台網址。換網域時：在 Supabase → Edge Functions → Secrets 新增 ALLOWED_ORIGINS
+// （多個用逗號分隔，例如 https://uncle-shrimp.pages.dev,https://www.example.com），不用改程式
+const ALLOWED_ORIGINS = (Deno.env.get("ALLOWED_ORIGINS") || "https://uncle-shrimp.pages.dev,https://ccl0320.github.io")
+  .split(",").map((x) => x.trim().replace(/\/$/, "")).filter(Boolean);
 
 function cors(origin: string): Record<string, string> {
   const ok = ALLOWED_ORIGINS.includes(origin || "");

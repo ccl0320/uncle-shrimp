@@ -1,0 +1,24 @@
+# 由 src/build.py 自動產生，請勿手動修改
+/*
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+  Cross-Origin-Opener-Policy: same-origin
+
+/
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-iLt0UA57zFK1GwGatHDl3LHZuLa1eo15WzVm3XaPYis=' https://static.line-scdn.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https://*.supabase.co https://*.line-scdn.net; connect-src 'self' https://*.supabase.co https://*.line.me https://*.line-scdn.net https://*.line-apps.com; frame-src https://*.line.me https://*.line-scdn.net https://*.line-apps.com; base-uri 'none'; form-action 'none'; object-src 'none'; frame-ancestors 'none'
+/index.html
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-iLt0UA57zFK1GwGatHDl3LHZuLa1eo15WzVm3XaPYis=' https://static.line-scdn.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https://*.supabase.co https://*.line-scdn.net; connect-src 'self' https://*.supabase.co https://*.line.me https://*.line-scdn.net https://*.line-apps.com; frame-src https://*.line.me https://*.line-scdn.net https://*.line-apps.com; base-uri 'none'; form-action 'none'; object-src 'none'; frame-ancestors 'none'
+
+/admin/*
+  Cache-Control: no-store
+  X-Robots-Tag: noindex, nofollow, noarchive
+  Referrer-Policy: no-referrer
+
+/config.js
+  Cache-Control: no-cache
+
+/assets/*
+  Cache-Control: public, max-age=604800
