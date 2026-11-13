@@ -28,7 +28,7 @@ out = ('<!doctype html>\n<html lang="zh-Hant">\n<head>\n<meta charset="utf-8">\n
        '<meta property="og:title" content="舅是好蝦 Uncle’s Shrimp Chips">\n'
        '<meta property="og:description" content="舅舅用心炸的手工香脆蝦餅，LINE 線上訂購。">\n'
        '<meta property="og:image" content="assets/hero.webp">\n<link rel="icon" href="assets/logo.webp">\n'
-       '<script src="config.js"></script>\n'
+       '<script src="config.js?v=20261113b"></script>\n'
        + head + '<style>\n[hidden]{display:none!important}body{margin:0}\n'
        + rest.replace('</style>', '</style>\n</head>\n<body>', 1) + '\n</body>\n</html>\n')
 open(os.path.join(ROOT, 'index.html'), 'w', encoding='utf-8').write(out)
