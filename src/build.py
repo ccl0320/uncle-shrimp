@@ -50,6 +50,13 @@ csp_site = '; '.join([
     f"frame-src {LINE}",
     "base-uri 'none'", "form-action 'none'", "object-src 'none'", "frame-ancestors 'none'",
 ])
+# 後台：只允許自己網域的程式（supabase-js 已自架在 admin/vendor），禁止被嵌入其他網站
+csp_admin = '; '.join([
+    "default-src 'self'", "script-src 'self'", "style-src 'self' https://fonts.googleapis.com",
+    "font-src https://fonts.gstatic.com", f"img-src 'self' data: blob: {SUPA}",
+    f"connect-src {SUPA} wss://*.supabase.co", "base-uri 'none'", "form-action 'none'",
+    "object-src 'none'", "frame-ancestors 'none'",
+])
 headers = f"""# 由 src/build.py 自動產生，請勿手動修改
 /*
   Strict-Transport-Security: max-age=31536000; includeSubDomains
@@ -65,6 +72,7 @@ headers = f"""# 由 src/build.py 自動產生，請勿手動修改
   Content-Security-Policy: {csp_site}
 
 /admin/*
+  Content-Security-Policy: {csp_admin}
   Cache-Control: no-store
   X-Robots-Tag: noindex, nofollow, noarchive
   Referrer-Policy: no-referrer

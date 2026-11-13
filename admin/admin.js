@@ -62,6 +62,7 @@
       list: (status, search, offset) => rpc("admin_list_orders", { p_status: status, p_search: search, p_limit: PAGE, p_offset: offset }),
       get: (id) => rpc("admin_get_order", { p_id: id }),
       update: (id, status, note) => rpc("admin_update_order", { p_id: id, p_status: status, p_admin_note: note }),
+      cancelSameSource: (id) => rpc("admin_cancel_same_source", { p_id: id }),
       audit: () => rpc("admin_audit_log", { p_limit: 200 }),
       purge: (days) => rpc("purge_old_pii", { p_days: days }),
       products: () => rpc("admin_list_products"),
@@ -335,7 +336,8 @@
       <label for="dNote">內部備註（顧客看不到）</label>
       <textarea id="dNote" maxlength="1000" placeholder="例如：已聯繫確認、物流單號">${esc(o.admin_note || "")}</textarea>
       <button class="btn primary" type="button" id="dSave">儲存</button>
-      <p class="save-msg" id="dMsg" role="status"></p>`;
+      <p class="save-msg" id="dMsg" role="status"></p>
+      ${me && me.role === "owner" && o.same_source_pending > 1 ? `<div class="sconfirm" id="dSpam"><p>同一個連線來源 7 天內還有 <b>${esc(o.same_source_pending)}</b> 筆待確認訂單。若確定是灌單或惡作劇，可以一次取消，名額會還回本週。</p><button class="btn danger mini" type="button" id="dSpamBtn">取消這 ${esc(o.same_source_pending)} 筆待確認訂單</button></div>` : ""}`;
     const ca = $("#copyAddr");
     if (ca) ca.addEventListener("click", () => {
       const t = o.address;
@@ -343,6 +345,13 @@
       try { navigator.clipboard.writeText(t).then(ok, () => {}); } catch (e) { /* ignore */ }
     });
     $("#dSave").addEventListener("click", saveOrder);
+    const sp = $("#dSpamBtn");
+    if (sp) sp.addEventListener("click", async () => {
+      if (sp.dataset.armed !== "1") { sp.dataset.armed = "1"; sp.textContent = "再按一次確認取消"; return; }
+      sp.disabled = true;
+      try { const n = await api.cancelSameSource(o.id); $("#dSpam").innerHTML = `<p>已取消 ${esc(n)} 筆。</p>`; load(true); }
+      catch (e) { $("#dSpam").innerHTML = `<p class="err">${esc(msg(e))}</p>`; }
+    });
   }
   async function saveOrder() {
     const b = $("#dSave"), m = $("#dMsg");
@@ -372,14 +381,14 @@
     if (t.dataset.tab === "audit") loadAudit();
     if (t.dataset.tab === "products") { loadProducts(); loadPromo(); loadCap(); loadShip(); }
   }));
-  const ACTION = { update_shipping: "修改運費", update_capacity: "修改接單上限", create_staff: "新增員工", update_staff: "修改員工", remove_staff: "移除員工", reset_staff_password: "重設員工密碼", staff_password_set: "員工設定新密碼", update_promo: "修改促銷活動", view_order: "查看訂單個資", update_order: "更新訂單", purge_pii: "清除舊個資", create_product: "新增商品", update_product: "修改商品" };
+  const ACTION = { cancel_same_source: "批次取消疑似灌單", update_shipping: "修改運費", update_capacity: "修改接單上限", create_staff: "新增員工", update_staff: "修改員工", remove_staff: "移除員工", reset_staff_password: "重設員工密碼", staff_password_set: "員工設定新密碼", update_promo: "修改促銷活動", view_order: "查看訂單個資", update_order: "更新訂單", purge_pii: "清除舊個資", create_product: "新增商品", update_product: "修改商品" };
   async function loadAudit() {
     $("#auditList").innerHTML = `<li class="muted">載入中…</li>`;
     try {
       const rows = await api.audit();
       $("#auditList").innerHTML = rows.length ? rows.map((r) => {
         const d = r.detail || {};
-        const extra = r.action === "update_order" ? `${STATUS_NAME[d.from] || d.from || ""} → ${STATUS_NAME[d.to] || d.to || ""}` : r.action === "purge_pii" ? `清除 ${d.rows} 筆` : r.action === "update_shipping" ? `免運門檻 ${fmt(d.free_from)} → ${fmt(d.free)}` : r.action === "update_capacity" ? `每週 ${d.weekly == null ? "不限" : d.weekly + " 包"}・每項最多 ${d.max_qty} 件` : /staff/.test(r.action) ? `${d.email || ""}${d.role ? `（${d.role_from && d.role_from !== d.role ? (d.role_from === "owner" ? "店長" : "員工") + " → " : ""}${d.role === "owner" ? "店長" : "員工"}）` : ""}${d.active === false && d.active_from !== false ? " 停用" : d.active === true && d.active_from === false ? " 啟用" : ""}` : r.action === "update_promo" ? `${d.enabled ? "開啟" : "關閉"}・${d.pay_percent ? zhe(d.pay_percent) : ""}${d.name ? "・" + d.name : ""}` : /product/.test(r.action) ? `${d.name || d.product || ""}${d.price_from != null && d.price_from !== d.price_to ? `（${fmt(d.price_from)} → ${fmt(d.price_to)}）` : ""}` : (d.order_no || "");
+        const extra = r.action === "update_order" ? `${STATUS_NAME[d.from] || d.from || ""} → ${STATUS_NAME[d.to] || d.to || ""}` : r.action === "purge_pii" ? `清除 ${d.rows} 筆` : r.action === "update_shipping" ? `免運門檻 ${fmt(d.free_from)} → ${fmt(d.free)}` : r.action === "update_capacity" ? `每週 ${d.weekly == null ? "不限" : d.weekly + " 包"}・每項最多 ${d.max_qty} 件` : /staff/.test(r.action) ? `${d.email || ""}${d.role ? `（${d.role_from && d.role_from !== d.role ? (d.role_from === "owner" ? "店長" : "員工") + " → " : ""}${d.role === "owner" ? "店長" : "員工"}）` : ""}${d.active === false && d.active_from !== false ? " 停用" : d.active === true && d.active_from === false ? " 啟用" : ""}` : r.action === "update_promo" ? `${d.enabled ? "開啟" : "關閉"}・${d.pay_percent ? zhe(d.pay_percent) : ""}${d.name ? "・" + d.name : ""}` : r.action === "cancel_same_source" ? `取消 ${d.rows} 筆` : /product/.test(r.action) ? `${d.name || d.product || ""}${d.price_from != null && d.price_from !== d.price_to ? `（${fmt(d.price_from)} → ${fmt(d.price_to)}）` : ""}` : (d.order_no || "");
         return `<li><time>${esc(new Date(r.at).toLocaleString("zh-TW", { timeZone: "Asia/Taipei", hour12: false }))}</time><span><b>${esc(r.actor_email || "系統排程")}</b> ${esc(ACTION[r.action] || r.action)} ${esc(extra)}</span></li>`;
       }).join("") : `<li class="muted">還沒有紀錄</li>`;
     } catch (e) { $("#auditList").innerHTML = `<li class="err">${esc(msg(e))}</li>`; }
@@ -537,7 +546,7 @@
   const STAFF_ERR = {
     email_exists: "這個 Email 已經有登入帳號了（可能是同一個 Supabase 專案的其他使用者）。請換一個 Email。",
     invalid_email: "Email 格式不正確。", weak_password: "密碼至少 12 個字元，且要有英文大寫、小寫和數字。",
-    staff_exists: "這個帳號已經在員工名單裡。", staff_not_found: "找不到這位員工。",
+    staff_exists: "這個帳號已經在員工名單裡。", staff_not_found: "找不到這位員工。", staff_not_new: "只能加入剛建立的新帳號，請用「新增員工」重新建立。",
     cannot_change_self: "不能修改自己的帳號（避免把自己鎖在外面）。", owner_only: "只有店長可以管理員工。",
     forbidden_origin: "請從正式網址開啟後台再操作。", not_authorized: "登入已過期，請重新登入。",
     function_missing: "還沒有部署「shop-staff」Edge Function，請依說明完成設定。"

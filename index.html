@@ -508,7 +508,7 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
   const DB=CFG.supabaseUrl&&CFG.supabaseAnonKey?{url:CFG.supabaseUrl,key:CFG.supabaseAnonKey}:null;
   // 舊版 anon key（eyJ 開頭）同時放在 Authorization；新版 publishable key 只放 apikey
   const dbAuth=()=>/^eyJ/.test(DB.key)?{apikey:DB.key,Authorization:"Bearer "+DB.key}:{apikey:DB.key};
-  const ORDER_ERR={too_many_orders:"這支手機一小時內下單次數太多，請稍後再試或直接 LINE 我們。",invalid_phone:"手機號碼格式不正確。",invalid_address:"請填寫收件地址或門市。",invalid_product:"有商品已下架，請重新整理頁面。",invalid_ship:"這個取貨方式目前暫停，請重新整理後選擇其他方式。",invalid_name:"請填寫收件人姓名。",invalid_qty:"商品數量超過上限，請調整數量。"};
+  const ORDER_ERR={too_many_orders:"短時間內下單次數或數量太多，請稍後再試，或直接 LINE 我們。",invalid_items:"購物車資料有誤，請重新整理頁面。",duplicate_product:"購物車資料有誤，請重新整理頁面。",invalid_note:"備註請在 500 字以內。",invalid_phone:"手機號碼格式不正確。",invalid_address:"請填寫收件地址或門市。",invalid_product:"有商品已下架，請重新整理頁面。",invalid_ship:"這個取貨方式目前暫停，請重新整理後選擇其他方式。",invalid_name:"請填寫收件人姓名。",invalid_qty:"商品數量超過上限，請調整數量。"};
   // LINE 官方帳號 ID（例："@unclesshrimp"）。填入後訂單會直接開啟與官方帳號的聊天室並帶入內容；
   // 留空時會開啟 LINE 分享畫面，由顧客自己選擇傳給店家。
   const LINE_OA="";
@@ -657,6 +657,7 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
         if(res.ok){no=j.order_no;t={...t,sub:j.subtotal,list:j.list_subtotal??j.subtotal,disc:j.discount||0,pname:j.promo_name,fee:j.shipping_fee,total:j.total};saved=true}
         else if(/^weekly_limit:/.test(j.message||"")){const n=+j.message.split(":")[1]||0;sbtn.disabled=false;serr.textContent=n>0?`本週只剩 ${n} 包可以接單（三入組算 3 包），請減少數量。`:"本週接單名額已滿，下週一會重新開放，謝謝支持！";loadCap();return}
         else if(ORDER_ERR[j.message]){sbtn.disabled=false;serr.textContent=ORDER_ERR[j.message];return}
+        else if(res.status<500){console.warn("order rejected",res.status,j);sbtn.disabled=false;serr.textContent="訂單送出失敗，請重新整理頁面後再試，或直接 LINE 我們。";return}
         else console.warn("order save failed",res.status,j);
       }catch(err){console.warn(err)}
       sbtn.disabled=false;
