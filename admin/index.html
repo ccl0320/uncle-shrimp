@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://*.supabase.co wss://*.supabase.co; base-uri 'none'; form-action 'none'; object-src 'none'">
+<title>舅是好蝦 訂單後台</title>
+<link rel="icon" href="../assets/logo.webp">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="admin.css">
+</head>
+<body>
+<header class="bar">
+  <div class="bar-in">
+    <img src="../assets/logo.webp" alt="" width="40" height="36">
+    <b>訂單後台</b>
+    <span class="who" id="who" hidden></span>
+    <button class="link" id="logoutBtn" type="button" hidden>登出</button>
+  </div>
+</header>
+<p class="demo-banner" id="demoBanner" hidden>示範模式：目前顯示的是假資料。完成 Supabase 設定後，這裡會顯示真實訂單。</p>
+
+<main class="wrap">
+  <!-- 登入 -->
+  <section class="card narrow" id="vLogin" hidden>
+    <h1>管理員登入</h1>
+    <form id="loginForm" novalidate>
+      <label for="email">Email</label>
+      <input id="email" type="email" autocomplete="username" required>
+      <label for="password">密碼</label>
+      <input id="password" type="password" autocomplete="current-password" required>
+      <p class="err" id="loginErr" role="alert"></p>
+      <button class="btn primary" type="submit" id="loginBtn">登入</button>
+    </form>
+    <button class="link small" type="button" id="forgotBtn">忘記密碼？</button>
+    <p class="hint">登入後需要輸入驗證 App（Google Authenticator 等）的 6 位數驗證碼。</p>
+  </section>
+
+  <!-- 忘記密碼 -->
+  <section class="card narrow" id="vForgot" hidden>
+    <h1>重設密碼</h1>
+    <form id="forgotForm" novalidate>
+      <label for="fEmail">管理員 Email</label>
+      <input id="fEmail" type="email" autocomplete="username" required>
+      <p class="err" id="forgotErr" role="alert"></p>
+      <button class="btn primary" type="submit">寄送重設連結</button>
+    </form>
+    <button class="link small" type="button" data-go="vLogin">回到登入</button>
+  </section>
+
+  <!-- 設定兩步驟驗證 -->
+  <section class="card narrow" id="vEnroll" hidden>
+    <h1>設定兩步驟驗證</h1>
+    <p>第一次登入需要綁定驗證 App。請用 Google Authenticator、Microsoft Authenticator 或 1Password 掃描 QR Code。</p>
+    <img class="qr" id="qrImg" alt="兩步驟驗證 QR Code" width="200" height="200">
+    <p class="small">無法掃描？手動輸入金鑰：<code id="secret"></code></p>
+    <form id="enrollForm" novalidate>
+      <label for="enrollCode">App 顯示的 6 位數驗證碼</label>
+      <input id="enrollCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" required>
+      <p class="err" id="enrollErr" role="alert"></p>
+      <button class="btn primary" type="submit">完成綁定</button>
+    </form>
+  </section>
+
+  <!-- 輸入驗證碼 -->
+  <section class="card narrow" id="vMfa" hidden>
+    <h1>輸入驗證碼</h1>
+    <form id="mfaForm" novalidate>
+      <label for="mfaCode">驗證 App 的 6 位數驗證碼</label>
+      <input id="mfaCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" required>
+      <p class="err" id="mfaErr" role="alert"></p>
+      <button class="btn primary" type="submit">驗證</button>
+    </form>
+  </section>
+
+  <!-- 設定新密碼 -->
+  <section class="card narrow" id="vNewPw" hidden>
+    <h1>設定新密碼</h1>
+    <form id="newPwForm" novalidate>
+      <label for="newPw">新密碼（至少 12 個字元，需含英文大小寫與數字）</label>
+      <input id="newPw" type="password" autocomplete="new-password" required>
+      <label for="newPw2">再輸入一次</label>
+      <input id="newPw2" type="password" autocomplete="new-password" required>
+      <p class="err" id="newPwErr" role="alert"></p>
+      <button class="btn primary" type="submit">更新密碼</button>
+    </form>
+  </section>
+
+  <!-- 無權限 -->
+  <section class="card narrow" id="vDenied" hidden>
+    <h1>沒有後台權限</h1>
+    <p>這個帳號不在管理員名單中。請聯絡店長開通。</p>
+    <button class="btn" type="button" id="deniedLogout">登出</button>
+  </section>
+
+  <!-- 訂單 -->
+  <section id="vOrders" hidden>
+    <div class="tabs" role="tablist">
+      <button class="tab on" type="button" data-tab="orders" role="tab" aria-selected="true">訂單</button>
+      <button class="tab" type="button" data-tab="audit" role="tab" aria-selected="false" id="auditTab" hidden>操作紀錄</button>
+    </div>
+
+    <div id="paneOrders">
+      <div class="tools">
+        <input id="search" type="search" placeholder="搜尋訂單編號或完整手機號碼" aria-label="搜尋">
+        <div class="chips" id="statusChips"></div>
+      </div>
+      <p class="muted small" id="listInfo"></p>
+      <ul class="orders" id="orderList"></ul>
+      <button class="btn" type="button" id="moreBtn" hidden>載入更多</button>
+    </div>
+
+    <div id="paneAudit" hidden>
+      <div class="purge card">
+        <h2>清除舊訂單個資</h2>
+        <p class="small">把「已完成」或「已取消」且超過天數未異動的訂單，姓名、電話、地址、備註永久清除（訂單金額與品項會保留）。</p>
+        <div class="row">
+          <label for="purgeDays">超過</label>
+          <input id="purgeDays" type="number" min="30" value="180" inputmode="numeric">
+          <span>天</span>
+          <button class="btn danger" type="button" id="purgeBtn">清除</button>
+        </div>
+        <div class="confirm" id="purgeConfirm" hidden>
+          <p>確定要永久清除嗎？這個動作無法復原。</p>
+          <button class="btn danger" type="button" id="purgeYes">確定清除</button>
+          <button class="btn" type="button" id="purgeNo">取消</button>
+        </div>
+        <p class="small" id="purgeMsg" role="status"></p>
+      </div>
+      <ul class="audit" id="auditList"></ul>
+    </div>
+  </section>
+</main>
+
+<!-- 訂單明細 -->
+<div class="sheet-bg" id="sheetBg" hidden></div>
+<aside class="sheet" id="sheet" hidden aria-modal="true" role="dialog" aria-labelledby="dNo">
+  <div class="sheet-head">
+    <h2 id="dNo"></h2>
+    <button class="link" type="button" id="sheetClose" aria-label="關閉">關閉</button>
+  </div>
+  <div id="dBody"></div>
+</aside>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" crossorigin="anonymous"></script>
+<script src="../config.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>

@@ -244,6 +244,7 @@ fieldset.field{border:0;padding:0;margin:0 0 14px}
 .agree{display:flex;gap:10px;align-items:flex-start;font-size:.9rem;margin:6px 0 16px}
 .agree input{accent-color:var(--orange);width:18px;height:18px;margin-top:4px}
 .submit{width:100%;font-size:1.1rem;padding:14px}
+.err-submit{color:var(--red);font-weight:700;font-size:.9rem;margin:0 0 8px;min-height:0}
 .form-note{font-size:.82rem;color:var(--brown-soft);margin-top:10px;text-align:center}
 
 .done{display:grid;gap:16px;text-align:center;justify-items:center}
@@ -425,6 +426,7 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
             <div class="field"><label for="f-note">備註</label><textarea id="f-note" name="note" placeholder="希望到貨時段、送禮卡片內容、大量訂購需求…"></textarea></div>
 
             <label class="agree"><input type="checkbox" id="f-agree" required><span>我已閱讀購買須知，並了解本產品含甲殼類（蝦）。</span></label>
+            <p class="err-submit" id="submitErr" role="alert"></p>
             <button class="btn btn-line submit" type="submit" id="submitBtn"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3C6.5 3 2 6.6 2 11c0 3.9 3.5 7.2 8.3 7.9.3.1.8.2.9.5.1.3.1.7 0 1l-.1.9c0 .3-.2 1 .9.5s5.9-3.5 8-6c1.4-1.6 2-3.2 2-4.8C22 6.6 17.5 3 12 3Zm-3.9 10.6H6.2a.5.5 0 0 1-.5-.5V9.2a.5.5 0 0 1 1 0v3.4h1.4a.5.5 0 0 1 0 1Zm2 -.5a.5.5 0 0 1-1 0V9.2a.5.5 0 0 1 1 0Zm4.6 0a.5.5 0 0 1-.9.3l-2-2.7v2.4a.5.5 0 0 1-1 0V9.2a.5.5 0 0 1 .9-.3l2 2.7V9.2a.5.5 0 0 1 1 0Zm3.1-2.5a.5.5 0 0 1 0 1h-1.4v.9h1.4a.5.5 0 0 1 0 1h-1.9a.5.5 0 0 1-.5-.5V9.2c0-.3.2-.5.5-.5h1.9a.5.5 0 0 1 0 1h-1.4v.9Z"/></svg>確認訂單，用 LINE 傳給我們</button>
             <p class="form-note">下一步會開啟 LINE，訂單內容已自動帶入，按「傳送」就完成訂購。</p>
           </form>
@@ -475,6 +477,10 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
     {id:"pickup",name:"預約自取",note:"自取地點與時間，將由我們另行聯繫確認",fee:0}
   ];
   const FREE=1200;
+  // 訂單資料庫（Supabase）。設定在 config.js；沒設定時只走 LINE 傳送。
+  const CFG=window.USC_CONFIG||{};
+  const DB=CFG.supabaseUrl&&CFG.supabaseAnonKey?{url:CFG.supabaseUrl,key:CFG.supabaseAnonKey}:null;
+  const ORDER_ERR={too_many_orders:"這支手機一小時內下單次數太多，請稍後再試或直接 LINE 我們。",invalid_phone:"手機號碼格式不正確。",invalid_address:"請填寫收件地址或門市。",invalid_product:"有商品已下架，請重新整理頁面。",invalid_name:"請填寫收件人姓名。",invalid_qty:"商品數量不正確。"};
   // LINE 官方帳號 ID（例："@unclesshrimp"）。填入後訂單會直接開啟與官方帳號的聊天室並帶入內容；
   // 留空時會開啟 LINE 分享畫面，由顧客自己選擇傳給店家。
   const LINE_OA="";
@@ -494,8 +500,7 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
   }
   const LINE_SVG='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3C6.5 3 2 6.6 2 11c0 3.9 3.5 7.2 8.3 7.9.3.1.8.2.9.5.1.3.1.7 0 1l-.1.9c0 .3-.2 1 .9.5s5.9-3.5 8-6c1.4-1.6 2-3.2 2-4.8C22 6.6 17.5 3 12 3Zm-3.9 10.6H6.2a.5.5 0 0 1-.5-.5V9.2a.5.5 0 0 1 1 0v3.4h1.4a.5.5 0 0 1 0 1Zm2 -.5a.5.5 0 0 1-1 0V9.2a.5.5 0 0 1 1 0Zm4.6 0a.5.5 0 0 1-.9.3l-2-2.7v2.4a.5.5 0 0 1-1 0V9.2a.5.5 0 0 1 .9-.3l2 2.7V9.2a.5.5 0 0 1 1 0Zm3.1-2.5a.5.5 0 0 1 0 1h-1.4v.9h1.4a.5.5 0 0 1 0 1h-1.9a.5.5 0 0 1-.5-.5V9.2c0-.3.2-.5.5-.5h1.9a.5.5 0 0 1 0 1h-1.4v.9Z"/></svg>';
   const PAY=[
-    {id:"transfer",name:"銀行轉帳 / ATM",note:"送出後顯示匯款帳號，轉帳後告知末五碼"},
-    {id:"cod",name:"貨到付款 / 取貨付款",note:"宅配或超商取貨時付現",only:["home","cvs"]},
+    {id:"cod",name:"貨到付款 / 取貨付款",note:"宅配或超商取貨時付現，自取時現場付款"},
     {id:"online",name:"信用卡、LINE Pay 線上付款",note:"金流串接中，即將開放",disabled:true}
   ];
   const $=s=>document.querySelector(s);
@@ -505,7 +510,7 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
   if(typeof cart!=="object"||Array.isArray(cart))cart={};
   // 首次造訪放一包示範商品，讓訂購區不是空白
   if(store.get("usc-seeded")===null&&Object.keys(cart).length===0){cart={original:2};store.set("usc-seeded",1)}
-  let ship="home",pay="transfer";
+  let ship="home",pay="cod";
 
   function imgHTML(p){
     if(p.img==="trio")return `<div class="multi"><img src="${IMG.bag}" alt=""><img src="${IMG.bag}" alt="${p.name}"><img src="${IMG.bag}" alt=""></div>`;
@@ -584,13 +589,13 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
   document.addEventListener("change",e=>{
     const t=e.target;
     if(t.dataset.cset)setQty(t.dataset.cset,+t.value||0);
-    if(t.name==="ship"){ship=t.value;const pp=PAY.find(p=>p.id===pay);if(pp.only&&!pp.only.includes(ship))pay="transfer";renderChoices();renderCart()}
+    if(t.name==="ship"){ship=t.value;renderChoices();renderCart()}
     if(t.name==="pay")pay=t.value;
   });
 
   function setErr(id,msg){const f=$("#"+id).closest(".field");f.classList.toggle("invalid",!!msg);f.querySelector(".err").textContent=msg||"";return !msg}
 
-  $("#orderForm").addEventListener("submit",e=>{
+  $("#orderForm").addEventListener("submit",async e=>{
     e.preventDefault();
     const name=$("#f-name").value.trim(),phone=$("#f-phone").value.replace(/[\s-]/g,""),addr=$("#f-addr").value.trim(),note=$("#f-note").value.trim();
     let ok=true;
@@ -600,13 +605,26 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
     const agree=$("#f-agree").checked;
     if(!agree){$("#f-agree").closest(".agree").style.color="var(--red)";ok=false}else $("#f-agree").closest(".agree").style.color="";
     if(!ok){const first=document.querySelector(".field.invalid input")||$("#f-agree");first&&first.focus();return}
-    const t=totals();if(!t.count)return;
+    let t=totals();if(!t.count)return;
     const d=new Date(),pad=n=>String(n).padStart(2,"0");
-    const no="USC"+d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+"-"+String(Math.floor(1000+Math.random()*9000));
+    let no="USC"+String(d.getFullYear()).slice(2)+pad(d.getMonth()+1)+pad(d.getDate())+"-L"+String(Math.floor(1000+Math.random()*9000));
+    let saved=!DB;
+    const sbtn=$("#submitBtn"),serr=$("#submitErr");serr.textContent="";
+    if(DB){
+      sbtn.disabled=true;
+      try{
+        const res=await fetch(DB.url.replace(/\/$/,"")+"/rest/v1/rpc/place_order",{method:"POST",headers:{"Content-Type":"application/json",apikey:DB.key,Authorization:"Bearer "+DB.key},
+          body:JSON.stringify({p:{name,phone,ship,address:addr,note,items:Object.entries(cart).map(([id,qty])=>({id,qty}))}})});
+        const j=await res.json().catch(()=>({}));
+        if(res.ok){no=j.order_no;t={...t,sub:j.subtotal,fee:j.shipping_fee,total:j.total};saved=true}
+        else if(res.status>=400&&res.status<500){sbtn.disabled=false;serr.textContent=ORDER_ERR[j.message]||"訂單資料有誤，請檢查後再送出。";return}
+      }catch(err){console.warn(err)}
+      sbtn.disabled=false;
+    }
     const s=SHIP.find(x=>x.id===ship),p=PAY.find(x=>x.id===pay);
     const lines=Object.entries(cart).map(([id,q])=>{const pr=PRODUCTS.find(x=>x.id===id);return `・${pr.name}（${pr.spec}）× ${q}　${fmt(pr.price*q)}`});
-    const text=[`【舅是好蝦 訂單】${no}`,...lines,`商品小計：${fmt(t.sub)}`,`運費：${t.fee?fmt(t.fee):"免運"}`,`應付總額：${fmt(t.total)}`,``,`收件人：${name}`,`手機：${phone}`,`取貨方式：${s.name}`,ship!=="pickup"?`${ship==="cvs"?"門市":"地址"}：${addr}`:null,`付款方式：${p.name}`,note?`備註：${note}`:null].filter(x=>x!==null).join("\n");
-    const payInfo=pay==="transfer"?`<p>請於 3 天內匯款 <b>${fmt(t.total)}</b> 至：<br>（銀行代碼）○○銀行 帳號 000-000-000000 <span class="tbd">待提供</span><br>完成後請告知帳號末五碼。</p>`:`<p>將於${ship==="cvs"?"超商取貨":"收件"}時付款 <b>${fmt(t.total)}</b>。</p>`;
+    const text=[`【舅是好蝦 訂單】${no}`,...lines,`商品小計：${fmt(t.sub)}`,`運費：${t.fee?fmt(t.fee):"免運"}`,`應付總額：${fmt(t.total)}`,saved?null:"（系統暫時無法記錄，請以此訊息為準）",``,`收件人：${name}`,`手機：${phone}`,`取貨方式：${s.name}`,ship!=="pickup"?`${ship==="cvs"?"門市":"地址"}：${addr}`:null,`付款方式：${p.name}`,note?`備註：${note}`:null].filter(x=>x!==null).join("\n");
+    const payInfo=`<p>${ship==="pickup"?"自取時":"收到商品時"}付款 <b>${fmt(t.total)}</b>（${ship==="cvs"?"超商取貨付款":ship==="home"?"宅配貨到付款":"現場付現"}）。</p>`;
     const clearCart=()=>{cart={};store.set("usc-cart",cart);renderCart();document.getElementById("order").scrollIntoView({behavior:"smooth"})};
     const showLinePanel=()=>{
     $("#formPanel").innerHTML=`<div class="done" tabindex="-1" id="doneBox"><img src="${IMG.logo}" alt=""><h3>最後一步：用 LINE 傳送訂單</h3><p class="no">${no}</p>
@@ -634,5 +652,11 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
   });
 
   renderProducts();renderChoices();renderCart();
+  // 有資料庫時，以資料庫的價格為準更新畫面
+  if(DB){fetch(DB.url.replace(/\/$/,"")+"/rest/v1/products?select=id,name,spec,price",{headers:{apikey:DB.key,Authorization:"Bearer "+DB.key}})
+    .then(r=>r.ok?r.json():null).then(rows=>{if(!Array.isArray(rows))return;
+      rows.forEach(r=>{const p=PRODUCTS.find(x=>x.id===r.id);if(p){p.name=r.name;p.spec=r.spec;p.price=r.price}});
+      for(let i=PRODUCTS.length-1;i>=0;i--)if(!rows.some(r=>r.id===PRODUCTS[i].id)){delete cart[PRODUCTS[i].id];PRODUCTS.splice(i,1)}
+      renderProducts();renderCart();document.querySelectorAll(".price-row .tbd").forEach(e=>e.remove())}).catch(()=>{})}
 })();
 </script>
