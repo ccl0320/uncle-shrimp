@@ -142,3 +142,4 @@ dd{margin:0;word-break:break-word;white-space:pre-wrap}
 .srow select{width:auto;min-width:0;padding:6px 10px}
 .sconfirm{margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--bg)}
 .sconfirm .rpw{font-family:ui-monospace,Menlo,monospace;margin:4px 0}
+.cap{margin-bottom:16px}

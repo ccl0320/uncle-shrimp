@@ -14,7 +14,7 @@
 - `config.js`：Supabase 網址與公開金鑰
 - `admin/`：訂單後台
 - `supabase/schema.sql`：資料表、權限規則、下單與後台函式
-- `supabase/002_products_admin.sql`、`003_promotions.sql`、`004_sale_price.sql`、`005_copy.sql`、`006_staff.sql`：之後加上的功能，依序在 SQL Editor 執行（可重複執行）
+- `supabase/002_products_admin.sql`、`003_promotions.sql`、`004_sale_price.sql`、`005_copy.sql`、`006_staff.sql`、`007_qty_limit.sql`：之後加上的功能，依序在 SQL Editor 執行（可重複執行）
 
 ## 一、建立 Supabase 訂單資料庫
 目前和 melissa-island 共用同一個 Supabase 專案。訂單資料全部放在獨立的 `shop` schema，和小島的 `public.island_docs` 互不影響。
@@ -111,6 +111,12 @@ select id, email, 'owner' from auth.users where email = 'owner@example.com';
 - 需先在 Supabase SQL Editor 執行 `supabase/004_sale_price.sql`（同時套用新定價：單包 $100、三入組 $260，滿 $520 免運，關閉全館折扣，家庭分享包下架）。
 - 後台 → 商品 → 點商品 → 「特價」欄填金額（要低於原價），留空＝不特價。
 - 有特價的商品以特價計算，**不再疊加全館折扣**；其他商品照全館折扣。
+
+## 接單上限
+- 需先在 SQL Editor 執行 `supabase/007_qty_limit.sql`。
+- 每個品項一次最多 10 件；每週最多接 200 包（三入組算 3 包），**每週一 00:00（台北時間）起算**，已取消的訂單不計。
+- 前台會顯示「本週還可接單 N 包」，額滿時無法加入購物車；資料庫下單時再檢查一次（同時下單會排隊，不會超賣）。
+- 店長在後台 **商品 → 接單上限** 調整；每個商品算幾包在商品編輯的「包數」設定。
 
 ## 付款
 目前只開放貨到付款／取貨付款／自取付現，線上金流之後再串接。

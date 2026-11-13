@@ -192,6 +192,12 @@ section.block{padding-block:72px}
 .price small{font-size:.8rem;margin-right:2px}
 .was{color:var(--brown-soft);text-decoration:line-through;font-size:.85rem;font-weight:500;margin-right:6px;font-variant-numeric:tabular-nums}
 .price .was{font-family:var(--f-body,inherit)}
+.cap-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--butter);color:var(--brown);border-radius:14px;padding:10px 16px;margin:0 0 18px;font-weight:700;font-size:.95rem}
+.cap-bar small{font-weight:500;color:var(--brown-soft)}
+.cap-bar.full{background:var(--red);color:var(--on-orange)}
+.cap-bar.full small{color:inherit;opacity:.9}
+.cap-bar[hidden]{display:none}
+.cap-warn{color:var(--red);font-weight:700;font-size:.9rem;margin:8px 0 0}
 .promo-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--red);color:var(--on-orange);border-radius:14px;padding:12px 16px;margin:0 0 18px;font-weight:700}
 .promo-bar b{font-family:var(--f-display);font-size:1.15rem}
 .promo-bar small{font-weight:500;opacity:.9}
@@ -357,6 +363,7 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
         <p>小鍋手工現炸，每週出貨。加入購物車後，到下方填寫訂購資料即可完成訂購。</p>
       </div>
       <p class="promo-bar" id="promoBar" hidden></p>
+      <p class="cap-bar" id="capBar" hidden></p>
       <div class="grid-products" id="productGrid"></div>
     </div>
   </section>
@@ -485,7 +492,7 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
   // 商品資料：之後只要改這裡就能更新品項與價格
   const PRODUCTS=[
     {id:"original",name:"原味手工蝦餅",spec:"單包 100g",price:100,tag:"招牌",img:"bag",desc:"選用印尼進口蝦餅原料，由舅舅在台灣手工油炸，做出金黃酥脆、讓大人小孩一口接一口的好滋味。"},
-    {id:"trio",name:"原味三入組",spec:"100g × 3 包",price:260,tag:"人氣",img:"trio",desc:"自己吃、分朋友都方便，比單買更划算。"}
+    {id:"trio",name:"原味三入組",spec:"100g × 3 包",price:260,packs:3,tag:"人氣",img:"trio",desc:"自己吃、分朋友都方便，比單買更划算。"}
   ];
   const SHIP=[
     {id:"home",name:"宅配到府",note:"黑貓或郵局宅配，約 3–5 個工作天出貨",fee:150},
@@ -501,7 +508,7 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
   const DB=CFG.supabaseUrl&&CFG.supabaseAnonKey?{url:CFG.supabaseUrl,key:CFG.supabaseAnonKey}:null;
   // 舊版 anon key（eyJ 開頭）同時放在 Authorization；新版 publishable key 只放 apikey
   const dbAuth=()=>/^eyJ/.test(DB.key)?{apikey:DB.key,Authorization:"Bearer "+DB.key}:{apikey:DB.key};
-  const ORDER_ERR={too_many_orders:"這支手機一小時內下單次數太多，請稍後再試或直接 LINE 我們。",invalid_phone:"手機號碼格式不正確。",invalid_address:"請填寫收件地址或門市。",invalid_product:"有商品已下架，請重新整理頁面。",invalid_name:"請填寫收件人姓名。",invalid_qty:"商品數量不正確。"};
+  const ORDER_ERR={too_many_orders:"這支手機一小時內下單次數太多，請稍後再試或直接 LINE 我們。",invalid_phone:"手機號碼格式不正確。",invalid_address:"請填寫收件地址或門市。",invalid_product:"有商品已下架，請重新整理頁面。",invalid_name:"請填寫收件人姓名。",invalid_qty:"商品數量超過上限，請調整數量。"};
   // LINE 官方帳號 ID（例："@unclesshrimp"）。填入後訂單會直接開啟與官方帳號的聊天室並帶入內容；
   // 留空時會開啟 LINE 分享畫面，由顧客自己選擇傳給店家。
   const LINE_OA="";
@@ -554,7 +561,7 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
           <div>
             <div class="price-row"><span class="price">${up(p)<p.price?`<s class="was">NT$${p.price.toLocaleString("zh-TW")}</s>`:""}<small>NT$</small>${up(p).toLocaleString("zh-TW")}</span></div>
             <div class="buy-row" style="margin-top:10px">
-              <div class="qty"><button type="button" data-step="-1" data-for="${p.id}" aria-label="減少">−</button><input id="q-${p.id}" type="number" min="1" max="99" value="1" aria-label="${esc(p.name)} 數量"><button type="button" data-step="1" data-for="${p.id}" aria-label="增加">+</button></div>
+              <div class="qty"><button type="button" data-step="-1" data-for="${p.id}" aria-label="減少">−</button><input id="q-${p.id}" type="number" min="1" max="10" value="1" aria-label="${esc(p.name)} 數量"><button type="button" data-step="1" data-for="${p.id}" aria-label="增加">+</button></div>
               <button class="btn btn-primary" type="button" data-add="${p.id}">加入購物車</button>
             </div>
             <p class="added" id="ok-${p.id}" aria-live="polite"></p>
@@ -585,10 +592,12 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
       return;
     }
     const left=Math.max(0,FREE-t.sub);
-    $("#cartBody").innerHTML=`<ul class="cart-list">${items.map(([id,q])=>{const p=PRODUCTS.find(x=>x.id===id);return `
+    const over=CAP&&CAP.remaining!=null&&cartPacks()>CAP.remaining;
+    {const sb=$("#submitBtn");if(sb&&over)sb.disabled=true}
+    $("#cartBody").innerHTML=(over?`<p class="cap-warn">本週只剩 ${CAP.remaining} 包可以接單，請減少購物車數量。</p>`:"")+`<ul class="cart-list">${items.map(([id,q])=>{const p=PRODUCTS.find(x=>x.id===id);return `
       <li class="cart-item"><img src="${thumb(p)}" alt="">
         <div><div class="nm">${esc(p.name)}</div><div class="sub">${esc(p.spec)}・${up(p)<p.price?`<s class="was">${fmt(p.price)}</s>`:""}${fmt(up(p))}</div>
-          <div class="qty sm" style="margin-top:6px"><button type="button" data-cstep="-1" data-for="${id}" aria-label="減少 ${esc(p.name)}">−</button><input type="number" min="1" max="99" value="${q}" data-cset="${id}" aria-label="${esc(p.name)} 數量"><button type="button" data-cstep="1" data-for="${id}" aria-label="增加 ${esc(p.name)}">+</button></div></div>
+          <div class="qty sm" style="margin-top:6px"><button type="button" data-cstep="-1" data-for="${id}" aria-label="減少 ${esc(p.name)}">−</button><input type="number" min="1" max="10" value="${q}" data-cset="${id}" aria-label="${esc(p.name)} 數量"><button type="button" data-cstep="1" data-for="${id}" aria-label="增加 ${esc(p.name)}">+</button></div></div>
         <div class="right"><span class="line">${fmt(up(p)*q)}</span><button class="rm" type="button" data-rm="${id}">移除</button></div></li>`}).join("")}</ul>
       <div class="ship-hint">${left>0?`再買 <b>${fmt(left)}</b> 就免運費${t.disc>0?"（以折扣後金額計算）":""}！`:`🎉 已達免運門檻 ${fmt(FREE)}`}<div class="ship-bar"><i style="width:${Math.min(100,t.sub/FREE*100)}%"></i></div></div>
       <div class="totals">${t.disc>0?`<div><span>原價小計</span><span>${fmt(t.list)}</span></div><div><span>${PROMO?esc(PROMO.name)+"・":""}優惠折抵</span><span>−${fmt(t.disc)}</span></div>`:""}<div><span>商品小計</span><span>${fmt(t.sub)}</span></div><div><span>運費（${SHIP.find(x=>x.id===ship).name}）</span><span>${t.fee===0?"免運":fmt(t.fee)}</span></div><div class="grand"><span>應付總額</span><span>${fmt(t.total)}</span></div></div>`;
@@ -601,12 +610,17 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
     if(ship==="pickup"){addr.hidden=true}else{addr.hidden=false;lab.innerHTML=(ship==="cvs"?"取貨門市（超商＋門市名稱）":"收件地址")+'<span class="req">*</span>';inp.placeholder=ship==="cvs"?"例：7-11 民生門市":"縣市、區、路段、門牌";inp.autocomplete=ship==="cvs"?"off":"street-address"}
   }
 
-  function setQty(id,q){q=Math.max(0,Math.min(99,q|0));if(q===0)delete cart[id];else cart[id]=q;store.set("usc-cart",cart);renderCart()}
+  let MAXQ=10; // 每個品項一次最多幾件（以資料庫設定為準，資料庫也會檢查）
+  let CAP=null; // 本週剩餘可接包數 {remaining,limit}
+  const packsOf=id=>{const p=PRODUCTS.find(x=>x.id===id);return (p&&p.packs)||1};
+  const cartPacks=(skip)=>Object.entries(cart).reduce((a,[id,q])=>id===skip?a:a+q*packsOf(id),0);
+  const maxFor=id=>CAP&&CAP.remaining!=null?Math.max(0,Math.min(MAXQ,Math.floor((CAP.remaining-cartPacks(id))/packsOf(id)))):MAXQ;
+  function setQty(id,q){q=Math.max(0,Math.min(maxFor(id),q|0));if(q===0)delete cart[id];else cart[id]=q;store.set("usc-cart",cart);renderCart()}
 
   document.addEventListener("click",e=>{
     const b=e.target.closest("button");if(!b)return;
-    if(b.dataset.step){const i=$("#q-"+b.dataset.for);i.value=Math.max(1,Math.min(99,(+i.value||1)+(+b.dataset.step)))}
-    if(b.dataset.add){const id=b.dataset.add,q=Math.max(1,+$("#q-"+id).value||1);setQty(id,(cart[id]||0)+q);const ok=$("#ok-"+id);ok.textContent="✓ 已加入 "+q+" 件";clearTimeout(ok._t);ok._t=setTimeout(()=>ok.textContent="",2200)}
+    if(b.dataset.step){const i=$("#q-"+b.dataset.for);i.value=Math.max(1,Math.min(MAXQ,(+i.value||1)+(+b.dataset.step)))}
+    if(b.dataset.add){const id=b.dataset.add,want=Math.max(1,+$("#q-"+id).value||1),before=cart[id]||0;setQty(id,before+want);const q=(cart[id]||0)-before,ok=$("#ok-"+id);const why=maxFor(id)<MAXQ?"本週剩餘名額不足":"每項一次最多 "+MAXQ+" 件";ok.textContent=q<want?(q>0?"✓ 已加入 "+q+" 件（"+why+"）":why+"，無法再加"):"✓ 已加入 "+q+" 件";clearTimeout(ok._t);ok._t=setTimeout(()=>ok.textContent="",2200)}
     if(b.dataset.cstep){const id=b.dataset.for;setQty(id,(cart[id]||0)+(+b.dataset.cstep))}
     if(b.dataset.rm)setQty(b.dataset.rm,0);
   });
@@ -641,6 +655,7 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
           body:JSON.stringify({p:{name,phone,ship,address:addr,note,items:Object.entries(cart).map(([id,qty])=>({id,qty}))}})});
         const j=await res.json().catch(()=>({}));
         if(res.ok){no=j.order_no;t={...t,sub:j.subtotal,list:j.list_subtotal??j.subtotal,disc:j.discount||0,pname:j.promo_name,fee:j.shipping_fee,total:j.total};saved=true}
+        else if(/^weekly_limit:/.test(j.message||"")){const n=+j.message.split(":")[1]||0;sbtn.disabled=false;serr.textContent=n>0?`本週只剩 ${n} 包可以接單（三入組算 3 包），請減少數量。`:"本週接單名額已滿，下週一會重新開放，謝謝支持！";loadCap();return}
         else if(ORDER_ERR[j.message]){sbtn.disabled=false;serr.textContent=ORDER_ERR[j.message];return}
         else console.warn("order save failed",res.status,j);
       }catch(err){console.warn(err)}
@@ -677,6 +692,22 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
   });
 
   renderProducts();renderChoices();renderCart();
+  function showCap(){
+    const bar=$("#capBar");if(!bar)return;
+    if(!CAP||CAP.remaining==null){bar.hidden=true;document.querySelectorAll("[data-add]").forEach(b=>b.disabled=false);return}
+    const full=CAP.remaining<=0;
+    bar.className="cap-bar"+(full?" full":"");
+    bar.innerHTML=full?`<span>本週接單名額已滿</span><small>每週一 00:00 重新開放，謝謝支持！</small>`:`<span>本週還可接單 ${CAP.remaining} 包</span><small>舅舅每週手工現炸數量有限，三入組算 3 包，每週一重新計算</small>`;
+    bar.hidden=false;
+    document.querySelectorAll("[data-add]").forEach(b=>b.disabled=full);
+  }
+  function loadCap(){
+    if(!DB)return;
+    fetch(DB.url.replace(/\/$/,"")+"/rest/v1/rpc/week_capacity",{method:"POST",headers:{"Content-Type":"application/json","Content-Profile":"shop",...dbAuth()},body:"{}"})
+      .then(r=>r.ok?r.json():null).then(j=>{if(!j)return;MAXQ=+j.max_qty||10;CAP={remaining:j.remaining==null?null:+j.remaining,limit:j.limit};
+        document.querySelectorAll('.qty input[type=number]').forEach(i=>i.max=MAXQ);showCap();renderCart()}).catch(()=>{});
+  }
+  loadCap();
   function showPromo(){
     const bar=$("#promoBar");if(!bar)return;
     if(!PROMO){bar.hidden=true;return}
@@ -691,13 +722,13 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
       if(PROMO.end_at){const ms=Date.parse(PROMO.end_at)-Date.now();if(ms>0&&ms<864e5*20)setTimeout(()=>{PROMO=null;showPromo();renderProducts();renderCart()},ms)}
     }).catch(()=>{})}
   // 有資料庫時，以資料庫的價格為準更新畫面
-  if(DB){fetch(DB.url.replace(/\/$/,"")+"/rest/v1/products?select=id,name,spec,price,sale_price,tag,description,image_url,sort&order=sort.asc,id.asc",{headers:{"Accept-Profile":"shop",...dbAuth()}})
+  if(DB){fetch(DB.url.replace(/\/$/,"")+"/rest/v1/products?select=id,name,spec,price,sale_price,packs,tag,description,image_url,sort&order=sort.asc,id.asc",{headers:{"Accept-Profile":"shop",...dbAuth()}})
     .then(r=>r.ok?r.json():null).then(rows=>{if(!Array.isArray(rows))return;
-      const next=rows.map(r=>{const old=PRODUCTS.find(x=>x.id===r.id)||{};return {...old,id:r.id,name:r.name,spec:r.spec,price:r.price,sale_price:r.sale_price??null,tag:r.tag||"",desc:r.description||old.desc||"",image_url:r.image_url||null}});
+      const next=rows.map(r=>{const old=PRODUCTS.find(x=>x.id===r.id)||{};return {...old,id:r.id,name:r.name,spec:r.spec,price:r.price,sale_price:r.sale_price??null,packs:r.packs||1,tag:r.tag||"",desc:r.description||old.desc||"",image_url:r.image_url||null}});
       for(const id of Object.keys(cart))if(!next.some(p=>p.id===id))delete cart[id];
       PRODUCTS.splice(0,PRODUCTS.length,...next);
       document.querySelectorAll("#products .notice").forEach(e=>e.remove());
-      renderProducts();renderCart();document.querySelectorAll(".price-row .tbd").forEach(e=>e.remove())}).catch(()=>{})}
+      renderProducts();renderCart();showCap();document.querySelectorAll(".price-row .tbd").forEach(e=>e.remove())}).catch(()=>{})}
 })();
 </script>
 
