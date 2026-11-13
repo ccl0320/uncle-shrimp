@@ -106,12 +106,12 @@
       saveProduct: (p) => { const i = demoProducts.findIndex((x) => x.id === p.id); const row = { ...p, price: Number(p.price), sale_price: p.sale_price === "" || p.sale_price == null ? null : Number(p.sale_price) }; if (row.sale_price != null && row.sale_price >= row.price) return Promise.reject(new Error("invalid_sale")); if (i >= 0) demoProducts[i] = row; else demoProducts.push(row); log.unshift({ at: new Date().toISOString(), actor_email: "owner@example.com", action: i >= 0 ? "update_product" : "create_product", detail: { product: p.id, name: p.name, price_to: p.price } }); return wait(row); },
       uploadImage: (blob) => wait(URL.createObjectURL(blob))
     };
-    var demoPromo = { enabled: true, name: "新開張試行 全館 7 折", pay_percent: 70, start_at: null, end_at: new Date(Date.now() + 17 * 864e5).toISOString(), free_shipping_threshold: 1200 };
+    var demoPromo = { enabled: false, name: "新開張試行 全館 7 折", pay_percent: 70, start_at: null, end_at: new Date(Date.now() + 17 * 864e5).toISOString(), free_shipping_threshold: 1200 };
     var demoLive = () => { const n = Date.now(); const on = demoPromo.enabled && demoPromo.pay_percent < 100 && (!demoPromo.start_at || n >= Date.parse(demoPromo.start_at)) && (!demoPromo.end_at || n < Date.parse(demoPromo.end_at)); return on ? { active: true, name: demoPromo.name, pay_percent: demoPromo.pay_percent, end_at: demoPromo.end_at } : { active: false }; };
     var demoProducts = [
-      { id: "original", name: "原味手工蝦餅", spec: "單包 100g", price: 180, active: true, sort: 1, tag: "招牌", description: "經典原味蝦餅，小鍋現炸、酥脆不油膩。", image_url: "../assets/bag.webp" },
+      { id: "original", name: "原味手工蝦餅", spec: "單包 100g", price: 100, active: true, sort: 1, tag: "招牌", description: "經典原味蝦餅，小鍋現炸、酥脆不油膩。", image_url: "../assets/bag.webp" },
       { id: "family", name: "家庭分享包", spec: "大包 250g", price: 399, active: false, sort: 2, tag: "", description: "一家人一起吃剛剛好。", image_url: "../assets/bowl.webp" },
-      { id: "trio", name: "原味三入組", spec: "100g × 3 包", price: 499, sale_price: 300, active: true, sort: 3, tag: "人氣", description: "比單買更划算。", image_url: null },
+      { id: "trio", name: "原味三入組", spec: "100g × 3 包", price: 260, active: true, sort: 3, tag: "人氣", description: "比單買更划算。", image_url: null },
       { id: "gift", name: "好蝦送禮盒", spec: "100g × 6 包・附提袋", price: 990, active: false, sort: 4, tag: "送禮", description: "伴手禮首選。", image_url: null }
     ];
   }

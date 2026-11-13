@@ -1,5 +1,5 @@
 -- =====================================================================
--- 舅是好蝦：單品特價（例：原味三入組 特價 $300）＋ 家庭分享包先下架 ＋ 商品說明更正
+-- 舅是好蝦：單品特價功能 ＋ 新定價（單包 $100、三入組 $260）＋ 家庭分享包下架 ＋ 商品說明更正
 -- 在 003_promotions.sql 之後執行。可以重複執行。
 --
 -- 規則
@@ -18,8 +18,11 @@ update shop.products set active = false where id = 'family';
 update shop.products set description = '經典原味蝦餅，小鍋現炸、酥脆不油膩，配茶、配啤酒都對味。'
  where id = 'original' and description like '最經典的鮮蝦原味%';
 
--- 三入組特價 $300（之後可在後台商品頁修改或清空）
-update shop.products set sale_price = 300 where id = 'trio' and price > 300;
+-- 2026-11-13 Jerry 定價：直接定價、不顯示原價。原味單包 $100、三入組 $260，不開全館折扣
+-- （之後可在後台商品頁修改價格或特價、在促銷活動開關折扣）
+update shop.products set price = 100, sale_price = null where id = 'original';
+update shop.products set price = 260, sale_price = null where id = 'trio';
+update shop.shop_settings set promo_enabled = false where id;
 
 -- ---------- 下單（特價優先，其餘套全館折扣） ----------
 create or replace function shop.place_order(p jsonb)
