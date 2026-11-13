@@ -103,15 +103,15 @@
       products: () => wait(demoProducts.map((x) => ({ ...x }))),
       getPromo: () => wait({ ...demoPromo, live: demoLive() }),
       setPromo: (p) => { Object.assign(demoPromo, p); log.unshift({ at: new Date().toISOString(), actor_email: "owner@example.com", action: "update_promo", detail: { enabled: p.enabled, name: p.name, pay_percent: p.pay_percent } }); return wait({ ...demoPromo, live: demoLive() }); },
-      saveProduct: (p) => { const i = demoProducts.findIndex((x) => x.id === p.id); const row = { ...p, price: Number(p.price) }; if (i >= 0) demoProducts[i] = row; else demoProducts.push(row); log.unshift({ at: new Date().toISOString(), actor_email: "owner@example.com", action: i >= 0 ? "update_product" : "create_product", detail: { product: p.id, name: p.name, price_to: p.price } }); return wait(row); },
+      saveProduct: (p) => { const i = demoProducts.findIndex((x) => x.id === p.id); const row = { ...p, price: Number(p.price), sale_price: p.sale_price === "" || p.sale_price == null ? null : Number(p.sale_price) }; if (row.sale_price != null && row.sale_price >= row.price) return Promise.reject(new Error("invalid_sale")); if (i >= 0) demoProducts[i] = row; else demoProducts.push(row); log.unshift({ at: new Date().toISOString(), actor_email: "owner@example.com", action: i >= 0 ? "update_product" : "create_product", detail: { product: p.id, name: p.name, price_to: p.price } }); return wait(row); },
       uploadImage: (blob) => wait(URL.createObjectURL(blob))
     };
     var demoPromo = { enabled: true, name: "新開張試行 全館 7 折", pay_percent: 70, start_at: null, end_at: new Date(Date.now() + 17 * 864e5).toISOString(), free_shipping_threshold: 1200 };
     var demoLive = () => { const n = Date.now(); const on = demoPromo.enabled && demoPromo.pay_percent < 100 && (!demoPromo.start_at || n >= Date.parse(demoPromo.start_at)) && (!demoPromo.end_at || n < Date.parse(demoPromo.end_at)); return on ? { active: true, name: demoPromo.name, pay_percent: demoPromo.pay_percent, end_at: demoPromo.end_at } : { active: false }; };
     var demoProducts = [
-      { id: "original", name: "原味手工蝦餅", spec: "單包 100g", price: 180, active: true, sort: 1, tag: "招牌", description: "最經典的鮮蝦原味，酥脆不油膩。", image_url: "../assets/bag.webp" },
-      { id: "family", name: "家庭分享包", spec: "大包 250g", price: 399, active: true, sort: 2, tag: "", description: "一家人一起吃剛剛好。", image_url: "../assets/bowl.webp" },
-      { id: "trio", name: "原味三入組", spec: "100g × 3 包", price: 499, active: true, sort: 3, tag: "人氣", description: "比單買更划算。", image_url: null },
+      { id: "original", name: "原味手工蝦餅", spec: "單包 100g", price: 180, active: true, sort: 1, tag: "招牌", description: "經典原味蝦餅，小鍋現炸、酥脆不油膩。", image_url: "../assets/bag.webp" },
+      { id: "family", name: "家庭分享包", spec: "大包 250g", price: 399, active: false, sort: 2, tag: "", description: "一家人一起吃剛剛好。", image_url: "../assets/bowl.webp" },
+      { id: "trio", name: "原味三入組", spec: "100g × 3 包", price: 499, sale_price: 300, active: true, sort: 3, tag: "人氣", description: "比單買更划算。", image_url: null },
       { id: "gift", name: "好蝦送禮盒", spec: "100g × 6 包・附提袋", price: 990, active: false, sort: 4, tag: "送禮", description: "伴手禮首選。", image_url: null }
     ];
   }
@@ -355,7 +355,7 @@
   // 商品管理（店長）
   // ------------------------------------------------------------------
   let products = [];
-  const PERR = { invalid_id: "商品代號只能用小寫英文、數字、- 或 _（2～40 字）。", invalid_name: "請填寫商品名稱（40 字以內）。", invalid_spec: "請填寫規格（40 字以內）。", invalid_price: "價格請填 0～100000 的整數。", invalid_image: "圖片網址不正確，請重新上傳。", owner_only: "只有店長帳號可以修改商品。" };
+  const PERR = { invalid_id: "商品代號只能用小寫英文、數字、- 或 _（2～40 字）。", invalid_name: "請填寫商品名稱（40 字以內）。", invalid_spec: "請填寫規格（40 字以內）。", invalid_price: "價格請填 0～100000 的整數。", invalid_sale: "特價要低於原價。", invalid_image: "圖片網址不正確，請重新上傳。", owner_only: "只有店長帳號可以修改商品。" };
   const pmsg = (e) => { const m = (e && e.message) || ""; for (const k in PERR) if (m.includes(k)) return PERR[k]; return msg(e); };
 
   async function loadProducts() {
@@ -366,7 +366,7 @@
         <li><button type="button" class="prod${p.active ? "" : " off"}" data-pid="${esc(p.id)}">
           ${p.image_url ? `<img src="${esc(p.image_url)}" alt="">` : `<span class="noimg">無圖片</span>`}
           <span><span class="pn">${esc(p.name)}</span><br><span class="ps">${esc(p.spec)}${p.tag ? "・" + esc(p.tag) : ""}</span></span>
-          <span class="pp">${fmt(p.price)}<br><span class="pill ${p.active ? "on" : "off"}">${p.active ? "上架中" : "已下架"}</span></span>
+          <span class="pp">${p.sale_price != null ? `<span class="strike">${fmt(p.price)}</span>${fmt(p.sale_price)}` : fmt(p.price)}<br><span class="pill ${p.active ? "on" : "off"}">${p.active ? "上架中" : "已下架"}</span></span>
         </button></li>`).join("") : `<li class="empty">還沒有商品</li>`;
     } catch (e) { $("#productList").innerHTML = `<li class="err">${esc(msg(e))}</li>`; }
   }
@@ -412,6 +412,7 @@
         <div><label for="pSpec">規格</label><input id="pSpec" maxlength="40" value="${esc(p.spec)}" placeholder="例：單包 100g"></div>
         <div><label for="pPrice">價格（NT$）</label><input id="pPrice" type="number" inputmode="numeric" min="0" max="100000" step="1" value="${esc(p.price)}"></div>
       </div>
+      <label for="pSale">特價（NT$，選填；留空＝不特價。有特價就不再套全館折扣）</label><input id="pSale" type="number" inputmode="numeric" min="0" max="100000" step="1" value="${p.sale_price == null ? "" : esc(p.sale_price)}" placeholder="例：300">
       <div class="row2">
         <div><label for="pTag">標籤（選填）</label><input id="pTag" maxlength="10" value="${esc(p.tag || "")}" placeholder="例：人氣"></div>
         <div><label for="pSort">排序（小的在前）</label><input id="pSort" type="number" inputmode="numeric" value="${esc(p.sort || 0)}"></div>
@@ -433,7 +434,7 @@
     $("#pSave").addEventListener("click", async () => {
       const b = $("#pSave"), m = $("#pMsg");
       const id = isNew ? $("#pId").value.trim().toLowerCase() : p.id;
-      const row = { id, name: $("#pName").value.trim(), spec: $("#pSpec").value.trim(), price: $("#pPrice").value, sort: parseInt($("#pSort").value, 10) || 0,
+      const row = { id, name: $("#pName").value.trim(), spec: $("#pSpec").value.trim(), price: $("#pPrice").value, sale_price: $("#pSale").value.trim(), sort: parseInt($("#pSort").value, 10) || 0,
         tag: $("#pTag").value.trim(), description: $("#pDesc").value.trim(), active: $("#pActive").checked, image_url: imageUrl };
       if (isNew && products.some((x) => x.id === id)) { m.textContent = "這個商品代號已經有人用了。"; return; }
       b.disabled = true; m.textContent = "儲存中…";

@@ -14,7 +14,7 @@
 - `config.js`：Supabase 網址與公開金鑰
 - `admin/`：訂單後台
 - `supabase/schema.sql`：資料表、權限規則、下單與後台函式
-- `supabase/002_products_admin.sql`、`003_promotions.sql`：之後加上的功能，依序在 SQL Editor 執行（可重複執行）
+- `supabase/002_products_admin.sql`、`003_promotions.sql`、`004_sale_price.sql`：之後加上的功能，依序在 SQL Editor 執行（可重複執行）
 
 ## 一、建立 Supabase 訂單資料庫
 目前和 melissa-island 共用同一個 Supabase 專案。訂單資料全部放在獨立的 `shop` schema，和小島的 `public.island_docs` 互不影響。
@@ -96,6 +96,11 @@
 - 實際金額一律由資料庫在下單時計算（每件單價＝原價×折數，四捨五入到元），前端改價無效。
 - **免運門檻以折扣後的商品金額判斷**。
 - 每次修改都會記在「操作紀錄」。
+
+## 單品特價
+- 需先在 Supabase SQL Editor 執行 `supabase/004_sale_price.sql`（同時把三入組設成特價 $300、家庭分享包下架）。
+- 後台 → 商品 → 點商品 → 「特價」欄填金額（要低於原價），留空＝不特價。
+- 有特價的商品以特價計算，**不再疊加全館折扣**；其他商品照全館折扣。
 
 ## 付款
 目前只開放貨到付款／取貨付款／自取付現，線上金流之後再串接。
