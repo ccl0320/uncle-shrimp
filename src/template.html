@@ -506,6 +506,7 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
     {id:"online",name:"信用卡、LINE Pay 線上付款",note:"金流串接中，即將開放",disabled:true}
   ];
   const $=s=>document.querySelector(s);
+  const esc=v=>String(v==null?"":v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   const fmt=n=>"NT$"+n.toLocaleString("zh-TW");
   const store={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
   let cart=store.get("usc-cart")||{};
@@ -515,24 +516,26 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
   let ship="home",pay="cod";
 
   function imgHTML(p){
-    if(p.img==="trio")return `<div class="multi"><img src="${IMG.bag}" alt=""><img src="${IMG.bag}" alt="${p.name}"><img src="${IMG.bag}" alt=""></div>`;
-    if(p.img==="gift")return `<div class="giftbox"><span class="bow" aria-hidden="true"></span><span class="lid" aria-hidden="true"></span><img src="${IMG.logo}" alt="${p.name}"></div>`;
-    return `<img src="${IMG[p.img]}" alt="${p.name}">`;
+    if(p.image_url)return `<img class="photo" src="${esc(p.image_url)}" alt="${esc(p.name)}" loading="lazy">`;
+    if(!IMG[p.img]&&p.img!=="trio"&&p.img!=="gift")return `<img src="${IMG.logo}" alt="${esc(p.name)}">`;
+    if(p.img==="trio")return `<div class="multi"><img src="${IMG.bag}" alt=""><img src="${IMG.bag}" alt="${esc(p.name)}"><img src="${IMG.bag}" alt=""></div>`;
+    if(p.img==="gift")return `<div class="giftbox"><span class="bow" aria-hidden="true"></span><span class="lid" aria-hidden="true"></span><img src="${IMG.logo}" alt="${esc(p.name)}"></div>`;
+    return `<img src="${IMG[p.img]}" alt="${esc(p.name)}">`;
   }
-  function thumb(p){return p.img==="bowl"?IMG.bowl:IMG.bag}
+  function thumb(p){return p.image_url?esc(p.image_url):p.img==="bowl"?IMG.bowl:p.img?IMG.bag:IMG.logo}
 
   function renderProducts(){
     $("#productGrid").innerHTML=PRODUCTS.map(p=>`
       <article class="card">
-        <div class="card-img${p.img==="bowl"?" bowl":""}">${imgHTML(p)}${p.tag?`<span class="tag">${p.tag}</span>`:""}<span class="demo">示意圖</span></div>
+        <div class="card-img${p.img==="bowl"||p.image_url?" bowl":""}">${imgHTML(p)}${p.tag?`<span class="tag">${esc(p.tag)}</span>`:""}${p.image_url?"":`<span class="demo">示意圖</span>`}</div>
         <div class="card-body">
-          <h3>${p.name}</h3>
-          <p class="spec">${p.spec}</p>
-          <p class="desc">${p.desc}</p>
+          <h3>${esc(p.name)}</h3>
+          <p class="spec">${esc(p.spec)}</p>
+          <p class="desc">${esc(p.desc)}</p>
           <div>
             <div class="price-row"><span class="price"><small>NT$</small>${p.price.toLocaleString("zh-TW")}</span><span class="tbd">價格待確認</span></div>
             <div class="buy-row" style="margin-top:10px">
-              <div class="qty"><button type="button" data-step="-1" data-for="${p.id}" aria-label="減少">−</button><input id="q-${p.id}" type="number" min="1" max="99" value="1" aria-label="${p.name} 數量"><button type="button" data-step="1" data-for="${p.id}" aria-label="增加">+</button></div>
+              <div class="qty"><button type="button" data-step="-1" data-for="${p.id}" aria-label="減少">−</button><input id="q-${p.id}" type="number" min="1" max="99" value="1" aria-label="${esc(p.name)} 數量"><button type="button" data-step="1" data-for="${p.id}" aria-label="增加">+</button></div>
               <button class="btn btn-primary" type="button" data-add="${p.id}">加入購物車</button>
             </div>
             <p class="added" id="ok-${p.id}" aria-live="polite"></p>
@@ -565,8 +568,8 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
     const left=Math.max(0,FREE-t.sub);
     $("#cartBody").innerHTML=`<ul class="cart-list">${items.map(([id,q])=>{const p=PRODUCTS.find(x=>x.id===id);return `
       <li class="cart-item"><img src="${thumb(p)}" alt="">
-        <div><div class="nm">${p.name}</div><div class="sub">${p.spec}・${fmt(p.price)}</div>
-          <div class="qty sm" style="margin-top:6px"><button type="button" data-cstep="-1" data-for="${id}" aria-label="減少 ${p.name}">−</button><input type="number" min="1" max="99" value="${q}" data-cset="${id}" aria-label="${p.name} 數量"><button type="button" data-cstep="1" data-for="${id}" aria-label="增加 ${p.name}">+</button></div></div>
+        <div><div class="nm">${esc(p.name)}</div><div class="sub">${esc(p.spec)}・${fmt(p.price)}</div>
+          <div class="qty sm" style="margin-top:6px"><button type="button" data-cstep="-1" data-for="${id}" aria-label="減少 ${esc(p.name)}">−</button><input type="number" min="1" max="99" value="${q}" data-cset="${id}" aria-label="${esc(p.name)} 數量"><button type="button" data-cstep="1" data-for="${id}" aria-label="增加 ${esc(p.name)}">+</button></div></div>
         <div class="right"><span class="line">${fmt(p.price*q)}</span><button class="rm" type="button" data-rm="${id}">移除</button></div></li>`}).join("")}</ul>
       <div class="ship-hint">${left>0?`再買 <b>${fmt(left)}</b> 就免運費！`:`🎉 已達免運門檻 ${fmt(FREE)}`}<div class="ship-bar"><i style="width:${Math.min(100,t.sub/FREE*100)}%"></i></div></div>
       <div class="totals"><div><span>商品小計</span><span>${fmt(t.sub)}</span></div><div><span>運費（${SHIP.find(x=>x.id===ship).name}）</span><span>${t.fee===0?"免運":fmt(t.fee)}</span></div><div class="grand"><span>應付總額</span><span>${fmt(t.total)}</span></div></div>`;
@@ -574,7 +577,7 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
 
   function renderChoices(){
     $("#shipChoices").innerHTML=SHIP.map(s=>`<label class="choice"><input type="radio" name="ship" value="${s.id}" ${s.id===ship?"checked":""}><span><b>${s.name}</b><small>${s.note}</small></span><span class="fee">${s.fee?fmt(s.fee):"免運"}</span></label>`).join("");
-    $("#payChoices").innerHTML=PAY.map(p=>{const off=p.disabled||(p.only&&!p.only.includes(ship));return `<label class="choice"><input type="radio" name="pay" value="${p.id}" ${p.id===pay&&!off?"checked":""} ${off?"disabled":""}><span><b>${p.name}</b><small>${p.disabled?p.note:(off?"此取貨方式不適用":p.note)}</small></span></label>`}).join("");
+    $("#payChoices").innerHTML=PAY.map(p=>{const off=p.disabled||(p.only&&!p.only.includes(ship));return `<label class="choice"><input type="radio" name="pay" value="${p.id}" ${p.id===pay&&!off?"checked":""} ${off?"disabled":""}><span><b>${esc(p.name)}</b><small>${p.disabled?p.note:(off?"此取貨方式不適用":p.note)}</small></span></label>`}).join("");
     const addr=$("#addrField"),lab=$("#addrLabel"),inp=$("#f-addr");
     if(ship==="pickup"){addr.hidden=true}else{addr.hidden=false;lab.innerHTML=(ship==="cvs"?"取貨門市（超商＋門市名稱）":"收件地址")+'<span class="req">*</span>';inp.placeholder=ship==="cvs"?"例：7-11 民生門市":"縣市、區、路段、門牌";inp.autocomplete=ship==="cvs"?"off":"street-address"}
   }
@@ -626,7 +629,7 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
     }
     const s=SHIP.find(x=>x.id===ship),p=PAY.find(x=>x.id===pay);
     const lines=Object.entries(cart).map(([id,q])=>{const pr=PRODUCTS.find(x=>x.id===id);return `・${pr.name}（${pr.spec}）× ${q}　${fmt(pr.price*q)}`});
-    const text=[`【舅是好蝦 訂單】${no}`,...lines,`商品小計：${fmt(t.sub)}`,`運費：${t.fee?fmt(t.fee):"免運"}`,`應付總額：${fmt(t.total)}`,saved?null:"（系統暫時無法記錄，請以此訊息為準）",``,`收件人：${name}`,`手機：${phone}`,`取貨方式：${s.name}`,ship!=="pickup"?`${ship==="cvs"?"門市":"地址"}：${addr}`:null,`付款方式：${p.name}`,note?`備註：${note}`:null].filter(x=>x!==null).join("\n");
+    const text=[`【舅是好蝦 訂單】${no}`,...lines,`商品小計：${fmt(t.sub)}`,`運費：${t.fee?fmt(t.fee):"免運"}`,`應付總額：${fmt(t.total)}`,saved?null:"（系統暫時無法記錄，請以此訊息為準）",``,`收件人：${name}`,`手機：${phone}`,`取貨方式：${s.name}`,ship!=="pickup"?`${ship==="cvs"?"門市":"地址"}：${addr}`:null,`付款方式：${esc(p.name)}`,note?`備註：${note}`:null].filter(x=>x!==null).join("\n");
     const payInfo=`<p>${ship==="pickup"?"自取時":"收到商品時"}付款 <b>${fmt(t.total)}</b>（${ship==="cvs"?"超商取貨付款":ship==="home"?"宅配貨到付款":"現場付現"}）。</p>`;
     const clearCart=()=>{cart={};store.set("usc-cart",cart);renderCart();document.getElementById("order").scrollIntoView({behavior:"smooth"})};
     const showLinePanel=()=>{
@@ -656,10 +659,12 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
 
   renderProducts();renderChoices();renderCart();
   // 有資料庫時，以資料庫的價格為準更新畫面
-  if(DB){fetch(DB.url.replace(/\/$/,"")+"/rest/v1/products?select=id,name,spec,price",{headers:{"Accept-Profile":"shop",...dbAuth()}})
+  if(DB){fetch(DB.url.replace(/\/$/,"")+"/rest/v1/products?select=id,name,spec,price,tag,description,image_url,sort&order=sort.asc,id.asc",{headers:{"Accept-Profile":"shop",...dbAuth()}})
     .then(r=>r.ok?r.json():null).then(rows=>{if(!Array.isArray(rows))return;
-      rows.forEach(r=>{const p=PRODUCTS.find(x=>x.id===r.id);if(p){p.name=r.name;p.spec=r.spec;p.price=r.price}});
-      for(let i=PRODUCTS.length-1;i>=0;i--)if(!rows.some(r=>r.id===PRODUCTS[i].id)){delete cart[PRODUCTS[i].id];PRODUCTS.splice(i,1)}
+      const next=rows.map(r=>{const old=PRODUCTS.find(x=>x.id===r.id)||{};return {...old,id:r.id,name:r.name,spec:r.spec,price:r.price,tag:r.tag||"",desc:r.description||old.desc||"",image_url:r.image_url||null}});
+      for(const id of Object.keys(cart))if(!next.some(p=>p.id===id))delete cart[id];
+      PRODUCTS.splice(0,PRODUCTS.length,...next);
+      document.querySelectorAll("#products .notice").forEach(e=>e.remove());
       renderProducts();renderCart();document.querySelectorAll(".price-row .tbd").forEach(e=>e.remove())}).catch(()=>{})}
 })();
 </script>

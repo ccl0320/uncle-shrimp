@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow,noarchive">
 <meta name="referrer" content="no-referrer">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://*.supabase.co wss://*.supabase.co; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https://*.supabase.co; connect-src https://*.supabase.co wss://*.supabase.co; base-uri 'none'; form-action 'none'; object-src 'none'">
 <title>舅是好蝦 訂單後台</title>
 <link rel="icon" href="../assets/logo.webp">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap">
@@ -99,6 +99,7 @@
   <section id="vOrders" hidden>
     <div class="tabs" role="tablist">
       <button class="tab on" type="button" data-tab="orders" role="tab" aria-selected="true">訂單</button>
+      <button class="tab" type="button" data-tab="products" role="tab" aria-selected="false" id="productsTab" hidden>商品</button>
       <button class="tab" type="button" data-tab="audit" role="tab" aria-selected="false" id="auditTab" hidden>操作紀錄</button>
     </div>
 
@@ -110,6 +111,14 @@
       <p class="muted small" id="listInfo"></p>
       <ul class="orders" id="orderList"></ul>
       <button class="btn" type="button" id="moreBtn" hidden>載入更多</button>
+    </div>
+
+    <div id="paneProducts" hidden>
+      <div class="ptools">
+        <p class="muted small">修改後前台會立即更新。下架的商品顧客看不到也無法下單。</p>
+        <button class="btn" type="button" id="newProductBtn">＋ 新增商品</button>
+      </div>
+      <ul class="plist" id="productList"></ul>
     </div>
 
     <div id="paneAudit" hidden>

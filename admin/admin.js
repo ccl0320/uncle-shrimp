@@ -54,7 +54,15 @@
       get: (id) => rpc("admin_get_order", { p_id: id }),
       update: (id, status, note) => rpc("admin_update_order", { p_id: id, p_status: status, p_admin_note: note }),
       audit: () => rpc("admin_audit_log", { p_limit: 200 }),
-      purge: (days) => rpc("purge_old_pii", { p_days: days })
+      purge: (days) => rpc("purge_old_pii", { p_days: days }),
+      products: () => rpc("admin_list_products"),
+      saveProduct: (p) => rpc("admin_upsert_product", { p }),
+      uploadImage: async (blob) => {
+        const path = "p/" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8) + ".webp";
+        const { error } = await sb.storage.from("shop-products").upload(path, blob, { contentType: "image/webp", upsert: false, cacheControl: "31536000" });
+        if (error) throw error;
+        return sb.storage.from("shop-products").getPublicUrl(path).data.publicUrl;
+      }
     };
   } else {
     // 示範資料（完全虛構）
@@ -89,8 +97,17 @@
       get: (id) => { const o = demo.find((x) => x.id === id); log.unshift({ at: new Date().toISOString(), actor_email: "owner@example.com", action: "view_order", detail: { order_no: o.order_no } }); return wait(JSON.parse(JSON.stringify(o))); },
       update: (id, status, note) => { const o = demo.find((x) => x.id === id); log.unshift({ at: new Date().toISOString(), actor_email: "owner@example.com", action: "update_order", detail: { from: o.status, to: status || o.status } }); if (status) o.status = status; if (note != null) o.admin_note = note; return wait(null); },
       audit: () => wait(log.slice()),
-      purge: () => wait(0)
+      purge: () => wait(0),
+      products: () => wait(demoProducts.map((x) => ({ ...x }))),
+      saveProduct: (p) => { const i = demoProducts.findIndex((x) => x.id === p.id); const row = { ...p, price: Number(p.price) }; if (i >= 0) demoProducts[i] = row; else demoProducts.push(row); log.unshift({ at: new Date().toISOString(), actor_email: "owner@example.com", action: i >= 0 ? "update_product" : "create_product", detail: { product: p.id, name: p.name, price_to: p.price } }); return wait(row); },
+      uploadImage: (blob) => wait(URL.createObjectURL(blob))
     };
+    var demoProducts = [
+      { id: "original", name: "原味手工蝦餅", spec: "單包 100g", price: 180, active: true, sort: 1, tag: "招牌", description: "最經典的鮮蝦原味，酥脆不油膩。", image_url: "../assets/bag.webp" },
+      { id: "family", name: "家庭分享包", spec: "大包 250g", price: 399, active: true, sort: 2, tag: "", description: "一家人一起吃剛剛好。", image_url: "../assets/bowl.webp" },
+      { id: "trio", name: "原味三入組", spec: "100g × 3 包", price: 499, active: true, sort: 3, tag: "人氣", description: "比單買更划算。", image_url: null },
+      { id: "gift", name: "好蝦送禮盒", spec: "100g × 6 包・附提袋", price: 990, active: false, sort: 4, tag: "送禮", description: "伴手禮首選。", image_url: null }
+    ];
   }
 
   // ------------------------------------------------------------------
@@ -205,7 +222,7 @@
     if (!me || !me.role) { show("vDenied"); return; }
     $("#who").textContent = me.email + (me.role === "owner" ? "（店長）" : "（員工）");
     $("#who").hidden = $("#logoutBtn").hidden = false;
-    $("#auditTab").hidden = me.role !== "owner";
+    $("#auditTab").hidden = $("#productsTab").hidden = me.role !== "owner";
     show("vOrders"); bump();
     renderChips(); load(true);
   }
@@ -302,16 +319,18 @@
     document.querySelectorAll(".tab").forEach((x) => { x.classList.toggle("on", x === t); x.setAttribute("aria-selected", x === t); });
     $("#paneOrders").hidden = t.dataset.tab !== "orders";
     $("#paneAudit").hidden = t.dataset.tab !== "audit";
+    $("#paneProducts").hidden = t.dataset.tab !== "products";
     if (t.dataset.tab === "audit") loadAudit();
+    if (t.dataset.tab === "products") loadProducts();
   }));
-  const ACTION = { view_order: "查看訂單個資", update_order: "更新訂單", purge_pii: "清除舊個資" };
+  const ACTION = { view_order: "查看訂單個資", update_order: "更新訂單", purge_pii: "清除舊個資", create_product: "新增商品", update_product: "修改商品" };
   async function loadAudit() {
     $("#auditList").innerHTML = `<li class="muted">載入中…</li>`;
     try {
       const rows = await api.audit();
       $("#auditList").innerHTML = rows.length ? rows.map((r) => {
         const d = r.detail || {};
-        const extra = r.action === "update_order" ? `${STATUS_NAME[d.from] || d.from || ""} → ${STATUS_NAME[d.to] || d.to || ""}` : r.action === "purge_pii" ? `清除 ${d.rows} 筆` : (d.order_no || "");
+        const extra = r.action === "update_order" ? `${STATUS_NAME[d.from] || d.from || ""} → ${STATUS_NAME[d.to] || d.to || ""}` : r.action === "purge_pii" ? `清除 ${d.rows} 筆` : /product/.test(r.action) ? `${d.name || d.product || ""}${d.price_from != null && d.price_from !== d.price_to ? `（${fmt(d.price_from)} → ${fmt(d.price_to)}）` : ""}` : (d.order_no || "");
         return `<li><time>${esc(new Date(r.at).toLocaleString("zh-TW", { timeZone: "Asia/Taipei", hour12: false }))}</time><span><b>${esc(r.actor_email || "系統排程")}</b> ${esc(ACTION[r.action] || r.action)} ${esc(extra)}</span></li>`;
       }).join("") : `<li class="muted">還沒有紀錄</li>`;
     } catch (e) { $("#auditList").innerHTML = `<li class="err">${esc(msg(e))}</li>`; }
@@ -324,6 +343,105 @@
     try { const n = await api.purge(days); $("#purgeMsg").textContent = `已清除 ${n} 筆訂單的個資。`; loadAudit(); }
     catch (e) { $("#purgeMsg").textContent = msg(e); }
   });
+
+  // ------------------------------------------------------------------
+  // 商品管理（店長）
+  // ------------------------------------------------------------------
+  let products = [];
+  const PERR = { invalid_id: "商品代號只能用小寫英文、數字、- 或 _（2～40 字）。", invalid_name: "請填寫商品名稱（40 字以內）。", invalid_spec: "請填寫規格（40 字以內）。", invalid_price: "價格請填 0～100000 的整數。", invalid_image: "圖片網址不正確，請重新上傳。", owner_only: "只有店長帳號可以修改商品。" };
+  const pmsg = (e) => { const m = (e && e.message) || ""; for (const k in PERR) if (m.includes(k)) return PERR[k]; return msg(e); };
+
+  async function loadProducts() {
+    $("#productList").innerHTML = `<li class="muted">載入中…</li>`;
+    try {
+      products = await api.products();
+      $("#productList").innerHTML = products.length ? products.map((p) => `
+        <li><button type="button" class="prod${p.active ? "" : " off"}" data-pid="${esc(p.id)}">
+          ${p.image_url ? `<img src="${esc(p.image_url)}" alt="">` : `<span class="noimg">無圖片</span>`}
+          <span><span class="pn">${esc(p.name)}</span><br><span class="ps">${esc(p.spec)}${p.tag ? "・" + esc(p.tag) : ""}</span></span>
+          <span class="pp">${fmt(p.price)}<br><span class="pill ${p.active ? "on" : "off"}">${p.active ? "上架中" : "已下架"}</span></span>
+        </button></li>`).join("") : `<li class="empty">還沒有商品</li>`;
+    } catch (e) { $("#productList").innerHTML = `<li class="err">${esc(msg(e))}</li>`; }
+  }
+  $("#productList").addEventListener("click", (e) => { const b = e.target.closest(".prod"); if (b) openProduct(products.find((x) => x.id === b.dataset.pid)); });
+  $("#newProductBtn").addEventListener("click", () => openProduct(null));
+
+  // 縮圖並轉成 WebP：檔案變小，也會去掉照片裡的 GPS 等資訊
+  function toWebp(file, max) {
+    return new Promise((resolve, reject) => {
+      const img = new Image(), url = URL.createObjectURL(file);
+      img.onload = () => {
+        const k = Math.min(1, max / Math.max(img.width, img.height));
+        const c = document.createElement("canvas");
+        c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(url);
+        c.toBlob((b) => (b ? resolve(b) : reject(new Error("圖片轉換失敗"))), "image/webp", 0.85);
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("無法讀取這張圖片，請改用 JPG 或 PNG。")); };
+      img.src = url;
+    });
+  }
+
+  function openProduct(p) {
+    const isNew = !p;
+    p = p || { id: "", name: "", spec: "", price: "", active: true, sort: (products.reduce((a, x) => Math.max(a, x.sort || 0), 0) + 1), tag: "", description: "", image_url: null };
+    let imageUrl = p.image_url, pendingBlob = null;
+    lastFocus = document.activeElement;
+    $("#dNo").textContent = isNew ? "新增商品" : p.name;
+    $("#sheet").hidden = $("#sheetBg").hidden = false;
+    $("#dBody").innerHTML = `
+      <div class="imgbox">
+        <span id="pImgWrap"></span>
+        <div class="imgbtns">
+          <label class="btn mini" for="pFile">選擇圖片</label>
+          <input class="vh" id="pFile" type="file" accept="image/jpeg,image/png,image/webp">
+          <button class="btn mini" type="button" id="pImgRemove">移除圖片</button>
+        </div>
+        <p class="muted small">建議正方形照片，會自動縮小到 1200px 並轉成 WebP。</p>
+      </div>
+      <label for="pName">商品名稱</label><input id="pName" maxlength="40" value="${esc(p.name)}">
+      <div class="row2">
+        <div><label for="pSpec">規格</label><input id="pSpec" maxlength="40" value="${esc(p.spec)}" placeholder="例：單包 100g"></div>
+        <div><label for="pPrice">價格（NT$）</label><input id="pPrice" type="number" inputmode="numeric" min="0" max="100000" step="1" value="${esc(p.price)}"></div>
+      </div>
+      <div class="row2">
+        <div><label for="pTag">標籤（選填）</label><input id="pTag" maxlength="10" value="${esc(p.tag || "")}" placeholder="例：人氣"></div>
+        <div><label for="pSort">排序（小的在前）</label><input id="pSort" type="number" inputmode="numeric" value="${esc(p.sort || 0)}"></div>
+      </div>
+      <label for="pDesc">商品說明（300 字以內）</label><textarea id="pDesc" maxlength="300">${esc(p.description || "")}</textarea>
+      ${isNew ? `<label for="pId">商品代號（英文，建立後不能改）</label><input id="pId" maxlength="40" placeholder="例：spicy-100g" autocapitalize="off">` : ""}
+      <label class="check"><input type="checkbox" id="pActive"${p.active ? " checked" : ""}> 上架（顧客看得到、可以下單）</label>
+      <button class="btn primary" type="button" id="pSave">${isNew ? "建立商品" : "儲存"}</button>
+      <p class="save-msg" id="pMsg" role="status"></p>`;
+    const renderImg = () => { $("#pImgWrap").innerHTML = imageUrl ? `<img src="${esc(imageUrl)}" alt="商品圖片預覽">` : `<span class="noimg">尚未上傳圖片</span>`; $("#pImgRemove").hidden = !imageUrl; };
+    renderImg();
+    $("#pFile").addEventListener("change", async (e) => {
+      const f = e.target.files[0]; if (!f) return;
+      $("#pMsg").textContent = "處理圖片中…";
+      try { pendingBlob = await toWebp(f, 1200); if (pendingBlob.size > 2 * 1024 * 1024) throw new Error("圖片太大，請換一張。"); imageUrl = URL.createObjectURL(pendingBlob); renderImg(); $("#pMsg").textContent = "圖片會在按「儲存」時上傳。"; }
+      catch (err) { pendingBlob = null; $("#pMsg").textContent = err.message; }
+    });
+    $("#pImgRemove").addEventListener("click", () => { imageUrl = null; pendingBlob = null; renderImg(); });
+    $("#pSave").addEventListener("click", async () => {
+      const b = $("#pSave"), m = $("#pMsg");
+      const id = isNew ? $("#pId").value.trim().toLowerCase() : p.id;
+      const row = { id, name: $("#pName").value.trim(), spec: $("#pSpec").value.trim(), price: $("#pPrice").value, sort: parseInt($("#pSort").value, 10) || 0,
+        tag: $("#pTag").value.trim(), description: $("#pDesc").value.trim(), active: $("#pActive").checked, image_url: imageUrl };
+      if (isNew && products.some((x) => x.id === id)) { m.textContent = "這個商品代號已經有人用了。"; return; }
+      b.disabled = true; m.textContent = "儲存中…";
+      try {
+        if (pendingBlob) { m.textContent = "上傳圖片中…"; row.image_url = await api.uploadImage(pendingBlob); pendingBlob = null; imageUrl = row.image_url; }
+        await api.saveProduct(row);
+        m.textContent = "已儲存，前台已更新。";
+        $("#dNo").textContent = row.name;
+        loadProducts();
+        if (isNew) setTimeout(closeSheet, 700);
+      } catch (e) { m.textContent = pmsg(e); }
+      b.disabled = false;
+    });
+    setTimeout(() => $("#pName").focus(), 50);
+  }
 
   route();
 })();
