@@ -357,7 +357,6 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
         <p>小鍋手工現炸，每週出貨。加入購物車後，到下方填寫訂購資料即可完成訂購。</p>
       </div>
       <p class="promo-bar" id="promoBar" hidden></p>
-      <p class="notice"><span aria-hidden="true">⚑</span><span>以下品項、規格與價格皆為示意，正式上線前會換成實際內容。商品圖取自主視覺，之後可換成實拍照片。</span></p>
       <div class="grid-products" id="productGrid"></div>
     </div>
   </section>
@@ -373,7 +372,6 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
         <p>舅舅以前長期在印尼工作。蝦餅（kerupuk udang）是當地餐桌上少不了的配角，市場、小吃攤、家家戶戶都吃得到。這些年吃過一家又一家，舅舅慢慢摸出了門道：哪種原料炸起來最膨、最香、最酥脆。</p>
         <p>回台灣後，舅舅最想念的就是那一味。於是透過在印尼累積的人脈，找到品質穩定的蝦餅原料來源，帶回來在自家廚房手工現炸，分給家人朋友。油鍋一響，孩子們就圍過來搶第一片；親友吃過都說：「這個應該拿出去賣！」於是有了舅是好蝦。現在我們一樣一批一批小鍋油炸、瀝油放涼後就封袋，讓你也吃到剛起鍋的酥脆。</p>
         <blockquote class="hand">做給外面的人吃，就跟做給自己家孩子吃一樣。<cite>舅是好蝦 舅舅</cite></blockquote>
-        <p><span class="tbd">⚑ 可再補充細節，例如在印尼哪個城市、待了幾年</span></p>
       </div>
     </div>
   </section>
@@ -383,7 +381,7 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
       <div class="sec-head">
         <p class="eyebrow">Handmade Process</p>
         <h2>一片蝦餅的手工旅程</h2>
-        <p>從挑選印尼原料到下鍋、封袋，每一步都由舅舅親手把關。<span class="tbd">⚑ 製程步驟待確認</span></p>
+        <p>從挑選印尼原料到下鍋、封袋，每一步都由舅舅親手把關。</p>
       </div>
       <ol class="steps">
         <li><h3>精選原料</h3><p>向舅舅在印尼長期合作的來源穩定採購蝦餅生片，每批確認效期與保存狀態。</p></li>
@@ -400,7 +398,6 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
       <div class="sec-head">
         <p class="eyebrow">FAQ</p>
         <h2>購買須知</h2>
-        <p>以下內容為預設草稿 <span class="tbd">⚑ 待確認</span></p>
       </div>
       <div class="faq-grid">
         <details open><summary>多久會出貨？</summary><p>蝦餅為小鍋手工現炸，完成訂購並確認付款後，約 3 至 5 個工作天出貨。節慶檔期訂單較多，出貨時間可能延長。</p></details>
@@ -428,7 +425,7 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
         </div>
         <div class="panel" id="formPanel">
           <form id="orderForm" novalidate>
-            <h3>收件與付款資料 <span class="tbd">約 1 分鐘</span></h3>
+            <h3>收件與付款資料</h3>
             <div class="row">
               <div class="field"><label for="f-name">收件人姓名<span class="req">*</span></label><input id="f-name" name="name" autocomplete="name" required><span class="err"></span></div>
               <div class="field"><label for="f-phone">手機號碼<span class="req">*</span></label><input id="f-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="09xx-xxx-xxx" required><span class="err"></span></div>
@@ -470,15 +467,12 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
     <div>
       <h4>聯絡我們</h4>
       <ul>
-        <li>LINE 官方帳號：@unclesshrimp <span class="tbd">待提供</span></li>
-        <li>電話：0900-000-000 <span class="tbd">待提供</span></li>
-        <li>Email：hello@example.com <span class="tbd">待提供</span></li>
+        <li>訂購與商品問題，歡迎透過 LINE 與我們聯繫</li>
       </ul>
     </div>
     <div>
       <h4>舅是好蝦</h4>
       <p>手工炸蝦餅・小鍋現炸・宅配全台</p>
-      <p>營業登記與食品業者登錄字號 <span class="tbd">待提供</span></p>
     </div>
   </div>
   <div class="wrap copy">© 2026 舅是好蝦 Uncle’s Shrimp Chips</div>
@@ -487,7 +481,7 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
 <script>
 (function(){
   const IMG={bag:"assets/bag.webp",bowl:"assets/bowl.webp",logo:"assets/logo.webp"};
-  // 商品資料：之後只要改這裡就能更新品項與價格（皆為示意，待確認）
+  // 商品資料：之後只要改這裡就能更新品項與價格
   const PRODUCTS=[
     {id:"original",name:"原味手工蝦餅",spec:"單包 100g",price:100,tag:"招牌",img:"bag",desc:"經典原味蝦餅，小鍋現炸、酥脆不油膩，配茶、配啤酒都對味。"},
     {id:"trio",name:"原味三入組",spec:"100g × 3 包",price:260,tag:"人氣",img:"trio",desc:"自己吃、分朋友都方便，比單買更划算。"}
@@ -551,13 +545,13 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
   function renderProducts(){
     $("#productGrid").innerHTML=PRODUCTS.map(p=>`
       <article class="card">
-        <div class="card-img${p.img==="bowl"||p.image_url?" bowl":""}">${imgHTML(p)}${p.tag?`<span class="tag">${esc(p.tag)}</span>`:""}${p.image_url?"":`<span class="demo">示意圖</span>`}</div>
+        <div class="card-img${p.img==="bowl"||p.image_url?" bowl":""}">${imgHTML(p)}${p.tag?`<span class="tag">${esc(p.tag)}</span>`:""}</div>
         <div class="card-body">
           <h3>${esc(p.name)}</h3>
           <p class="spec">${esc(p.spec)}</p>
           <p class="desc">${esc(p.desc)}</p>
           <div>
-            <div class="price-row"><span class="price">${up(p)<p.price?`<s class="was">NT$${p.price.toLocaleString("zh-TW")}</s>`:""}<small>NT$</small>${up(p).toLocaleString("zh-TW")}</span><span class="tbd">價格待確認</span></div>
+            <div class="price-row"><span class="price">${up(p)<p.price?`<s class="was">NT$${p.price.toLocaleString("zh-TW")}</s>`:""}<small>NT$</small>${up(p).toLocaleString("zh-TW")}</span></div>
             <div class="buy-row" style="margin-top:10px">
               <div class="qty"><button type="button" data-step="-1" data-for="${p.id}" aria-label="減少">−</button><input id="q-${p.id}" type="number" min="1" max="99" value="1" aria-label="${esc(p.name)} 數量"><button type="button" data-step="1" data-for="${p.id}" aria-label="增加">+</button></div>
               <button class="btn btn-primary" type="button" data-add="${p.id}">加入購物車</button>
