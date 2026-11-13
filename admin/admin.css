@@ -130,3 +130,15 @@ dd{margin:0;word-break:break-word;white-space:pre-wrap}
 .row2>div{min-width:0}
 .row2 input{min-width:0;width:100%;box-sizing:border-box}
 @media (max-width:520px){.promo .row2:last-of-type{grid-template-columns:1fr}}
+.staff-new{margin-bottom:16px}
+.staff-new #sGen{margin:8px 0 14px}
+.stafflist{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.staff{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.staff.off{opacity:.7}
+.staff .sh{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.staff .sh b{margin-right:4px;word-break:break-all}
+.staff p{margin:6px 0 0}
+.srow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
+.srow select{width:auto;min-width:0;padding:6px 10px}
+.sconfirm{margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--bg)}
+.sconfirm .rpw{font-family:ui-monospace,Menlo,monospace;margin:4px 0}

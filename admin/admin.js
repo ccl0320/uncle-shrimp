@@ -39,7 +39,7 @@
   // ------------------------------------------------------------------
   // 資料存取層
   // ------------------------------------------------------------------
-  let sb = null, api, me = null, recovering = false, enrollFactorId = null;
+  let sb = null, api, me = null, recovering = false, forcePw = false, enrollFactorId = null;
 
   if (!DEMO) {
     if (!window.supabase) { document.body.textContent = "無法載入登入元件，請檢查網路後重新整理。"; return; }
@@ -48,6 +48,15 @@
       auth: { storage: window.sessionStorage, persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
     });
     const rpc = async (fn, args) => { const { data, error } = await sb.rpc(fn, args || {}); if (error) throw error; return data; };
+    // 建立帳號／重設密碼需要管理金鑰，交給伺服器端的 Edge Function 處理
+    const staffFn = async (body) => {
+      const { data, error } = await sb.functions.invoke("shop-staff", { body });
+      if (!error) return data;
+      let code = error.message || "";
+      try { const j = await error.context.json(); code = j.error || code; } catch (_) { if (error.context && error.context.status === 404) code = "function_missing"; }
+      if (/Failed to send|FunctionsFetchError/i.test(error.name + " " + code)) code = "function_missing";
+      throw new Error(code);
+    };
     api = {
       whoami: () => rpc("admin_whoami"),
       list: (status, search, offset) => rpc("admin_list_orders", { p_status: status, p_search: search, p_limit: PAGE, p_offset: offset }),
@@ -58,6 +67,12 @@
       products: () => rpc("admin_list_products"),
       getPromo: () => rpc("admin_get_promo"),
       setPromo: (p) => rpc("admin_set_promo", { p }),
+      passwordChanged: () => rpc("admin_password_changed"),
+      listStaff: () => rpc("admin_list_staff"),
+      updateStaff: (uid, role, active) => rpc("admin_update_staff", { p_user: uid, p_role: role, p_active: active }),
+      removeStaff: (uid) => rpc("admin_remove_staff", { p_user: uid }),
+      createStaff: (email, password, role) => staffFn({ action: "create", email, password, role }),
+      resetStaffPw: (uid, password) => staffFn({ action: "reset_password", user_id: uid, password }),
       saveProduct: (p) => rpc("admin_upsert_product", { p }),
       uploadImage: async (blob) => {
         const path = "p/" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8) + ".webp";
@@ -102,10 +117,20 @@
       purge: () => wait(0),
       products: () => wait(demoProducts.map((x) => ({ ...x }))),
       getPromo: () => wait({ ...demoPromo, live: demoLive() }),
+      passwordChanged: () => wait({ email: "owner@example.com", role: "owner", aal: "aal2" }),
+      listStaff: () => wait(demoStaff.map((x) => ({ ...x }))),
+      createStaff: (email, password, role) => { if (demoStaff.some((x) => x.email === email.toLowerCase())) return Promise.reject(new Error("email_exists")); demoStaff.push({ user_id: "demo-" + Date.now(), email: email.toLowerCase(), role, active: true, must_change_password: true, mfa: false, created_at: new Date().toISOString(), last_sign_in_at: null, is_me: false }); log.unshift({ at: new Date().toISOString(), actor_email: "owner@example.com", action: "create_staff", detail: { email, role } }); return wait({}); },
+      updateStaff: (uid, role, active) => { const s = demoStaff.find((x) => x.user_id === uid); log.unshift({ at: new Date().toISOString(), actor_email: "owner@example.com", action: "update_staff", detail: { email: s.email, role_from: s.role, role: role || s.role, active_from: s.active, active: active == null ? s.active : active } }); if (role) s.role = role; if (active != null) s.active = active; return wait(null); },
+      removeStaff: (uid) => { const i = demoStaff.findIndex((x) => x.user_id === uid); log.unshift({ at: new Date().toISOString(), actor_email: "owner@example.com", action: "remove_staff", detail: { email: demoStaff[i].email } }); demoStaff.splice(i, 1); return wait(null); },
+      resetStaffPw: (uid) => { const s = demoStaff.find((x) => x.user_id === uid); s.must_change_password = true; log.unshift({ at: new Date().toISOString(), actor_email: "owner@example.com", action: "reset_staff_password", detail: { email: s.email } }); return wait({}); },
       setPromo: (p) => { Object.assign(demoPromo, p); log.unshift({ at: new Date().toISOString(), actor_email: "owner@example.com", action: "update_promo", detail: { enabled: p.enabled, name: p.name, pay_percent: p.pay_percent } }); return wait({ ...demoPromo, live: demoLive() }); },
       saveProduct: (p) => { const i = demoProducts.findIndex((x) => x.id === p.id); const row = { ...p, price: Number(p.price), sale_price: p.sale_price === "" || p.sale_price == null ? null : Number(p.sale_price) }; if (row.sale_price != null && row.sale_price >= row.price) return Promise.reject(new Error("invalid_sale")); if (i >= 0) demoProducts[i] = row; else demoProducts.push(row); log.unshift({ at: new Date().toISOString(), actor_email: "owner@example.com", action: i >= 0 ? "update_product" : "create_product", detail: { product: p.id, name: p.name, price_to: p.price } }); return wait(row); },
       uploadImage: (blob) => wait(URL.createObjectURL(blob))
     };
+    var demoStaff = [
+      { user_id: "demo-owner", email: "owner@example.com", role: "owner", active: true, must_change_password: false, mfa: true, created_at: new Date(Date.now() - 864e5 * 3).toISOString(), last_sign_in_at: new Date().toISOString(), is_me: true },
+      { user_id: "demo-staff", email: "helper@example.com", role: "staff", active: true, must_change_password: true, mfa: false, created_at: new Date(Date.now() - 36e5).toISOString(), last_sign_in_at: null, is_me: false }
+    ];
     var demoPromo = { enabled: false, name: "新開張試行 全館 7 折", pay_percent: 70, start_at: null, end_at: new Date(Date.now() + 17 * 864e5).toISOString(), free_shipping_threshold: 520 };
     var demoLive = () => { const n = Date.now(); const on = demoPromo.enabled && demoPromo.pay_percent < 100 && (!demoPromo.start_at || n >= Date.parse(demoPromo.start_at)) && (!demoPromo.end_at || n < Date.parse(demoPromo.end_at)); return on ? { active: true, name: demoPromo.name, pay_percent: demoPromo.pay_percent, end_at: demoPromo.end_at } : { active: false }; };
     var demoProducts = [
@@ -195,6 +220,10 @@
     $("#newPw").value = $("#newPw2").value = "";
     if (error) { err.textContent = msg(error); return; }
     recovering = false;
+    if (forcePw) {
+      try { await api.passwordChanged(); } catch (e2) { err.textContent = /password_not_changed/.test(e2.message || "") ? "新密碼不能和初始密碼一樣。" : msg(e2); return; }
+      forcePw = false; $("#newPwHint").hidden = true; $("#newPwTitle").textContent = "設定新密碼";
+    }
     enterApp();
   });
 
@@ -225,10 +254,11 @@
 
   async function enterApp() {
     try { me = await api.whoami(); } catch (e) { me = null; }
+    if (me && me.must_change_password) { forcePw = true; $("#newPwTitle").textContent = "設定你自己的密碼"; $("#newPwHint").hidden = false; show("vNewPw"); return; }
     if (!me || !me.role) { show("vDenied"); return; }
     $("#who").textContent = me.email + (me.role === "owner" ? "（店長）" : "（員工）");
     $("#who").hidden = $("#logoutBtn").hidden = false;
-    $("#auditTab").hidden = $("#productsTab").hidden = me.role !== "owner";
+    $("#auditTab").hidden = $("#productsTab").hidden = $("#staffTab").hidden = me.role !== "owner";
     show("vOrders"); bump();
     renderChips(); load(true);
   }
@@ -327,17 +357,19 @@
     $("#paneOrders").hidden = t.dataset.tab !== "orders";
     $("#paneAudit").hidden = t.dataset.tab !== "audit";
     $("#paneProducts").hidden = t.dataset.tab !== "products";
+    $("#paneStaff").hidden = t.dataset.tab !== "staff";
+    if (t.dataset.tab === "staff") loadStaff();
     if (t.dataset.tab === "audit") loadAudit();
     if (t.dataset.tab === "products") { loadProducts(); loadPromo(); }
   }));
-  const ACTION = { update_promo: "修改促銷活動", view_order: "查看訂單個資", update_order: "更新訂單", purge_pii: "清除舊個資", create_product: "新增商品", update_product: "修改商品" };
+  const ACTION = { create_staff: "新增員工", update_staff: "修改員工", remove_staff: "移除員工", reset_staff_password: "重設員工密碼", staff_password_set: "員工設定新密碼", update_promo: "修改促銷活動", view_order: "查看訂單個資", update_order: "更新訂單", purge_pii: "清除舊個資", create_product: "新增商品", update_product: "修改商品" };
   async function loadAudit() {
     $("#auditList").innerHTML = `<li class="muted">載入中…</li>`;
     try {
       const rows = await api.audit();
       $("#auditList").innerHTML = rows.length ? rows.map((r) => {
         const d = r.detail || {};
-        const extra = r.action === "update_order" ? `${STATUS_NAME[d.from] || d.from || ""} → ${STATUS_NAME[d.to] || d.to || ""}` : r.action === "purge_pii" ? `清除 ${d.rows} 筆` : r.action === "update_promo" ? `${d.enabled ? "開啟" : "關閉"}・${d.pay_percent ? zhe(d.pay_percent) : ""}${d.name ? "・" + d.name : ""}` : /product/.test(r.action) ? `${d.name || d.product || ""}${d.price_from != null && d.price_from !== d.price_to ? `（${fmt(d.price_from)} → ${fmt(d.price_to)}）` : ""}` : (d.order_no || "");
+        const extra = r.action === "update_order" ? `${STATUS_NAME[d.from] || d.from || ""} → ${STATUS_NAME[d.to] || d.to || ""}` : r.action === "purge_pii" ? `清除 ${d.rows} 筆` : /staff/.test(r.action) ? `${d.email || ""}${d.role ? `（${d.role_from && d.role_from !== d.role ? (d.role_from === "owner" ? "店長" : "員工") + " → " : ""}${d.role === "owner" ? "店長" : "員工"}）` : ""}${d.active === false && d.active_from !== false ? " 停用" : d.active === true && d.active_from === false ? " 啟用" : ""}` : r.action === "update_promo" ? `${d.enabled ? "開啟" : "關閉"}・${d.pay_percent ? zhe(d.pay_percent) : ""}${d.name ? "・" + d.name : ""}` : /product/.test(r.action) ? `${d.name || d.product || ""}${d.price_from != null && d.price_from !== d.price_to ? `（${fmt(d.price_from)} → ${fmt(d.price_to)}）` : ""}` : (d.order_no || "");
         return `<li><time>${esc(new Date(r.at).toLocaleString("zh-TW", { timeZone: "Asia/Taipei", hour12: false }))}</time><span><b>${esc(r.actor_email || "系統排程")}</b> ${esc(ACTION[r.action] || r.action)} ${esc(extra)}</span></li>`;
       }).join("") : `<li class="muted">還沒有紀錄</li>`;
     } catch (e) { $("#auditList").innerHTML = `<li class="err">${esc(msg(e))}</li>`; }
@@ -486,6 +518,105 @@
     try { const p = await api.setPromo(row); showLive(p.live); m.textContent = p.live && p.live.active ? "已儲存，活動進行中，前台已顯示折扣。" : "已儲存，活動目前未生效。"; }
     catch (err) { const k = Object.keys(PROMO_ERR).find((x) => (err.message || "").includes(x)); m.textContent = k ? PROMO_ERR[k] : msg(err); }
     b.disabled = false;
+  });
+
+  // ------------------------------------------------------------------
+  // 員工帳號（店長）
+  // ------------------------------------------------------------------
+  const STAFF_ERR = {
+    email_exists: "這個 Email 已經有登入帳號了（可能是同一個 Supabase 專案的其他使用者）。請換一個 Email。",
+    invalid_email: "Email 格式不正確。", weak_password: "密碼至少 12 個字元，且要有英文大寫、小寫和數字。",
+    staff_exists: "這個帳號已經在員工名單裡。", staff_not_found: "找不到這位員工。",
+    cannot_change_self: "不能修改自己的帳號（避免把自己鎖在外面）。", owner_only: "只有店長可以管理員工。",
+    forbidden_origin: "請從正式網址開啟後台再操作。", not_authorized: "登入已過期，請重新登入。",
+    function_missing: "還沒有部署「shop-staff」Edge Function，請依說明完成設定。"
+  };
+  const smsg = (e) => { const m = (e && e.message) || String(e); for (const k in STAFF_ERR) if (m.includes(k)) return STAFF_ERR[k]; return msg(e); };
+  const ROLE_NAME = { owner: "店長", staff: "員工" };
+  function genPassword() {
+    const sets = ["ABCDEFGHJKLMNPQRSTUVWXYZ", "abcdefghijkmnopqrstuvwxyz", "23456789"], all = sets.join("");
+    const rnd = (n) => { const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % n; };
+    const out = sets.map((s) => s[rnd(s.length)]);
+    while (out.length < 14) out.push(all[rnd(all.length)]);
+    for (let i = out.length - 1; i > 0; i--) { const j = rnd(i + 1); [out[i], out[j]] = [out[j], out[i]]; }
+    return out.join("");
+  }
+  const strong = (p) => p.length >= 12 && /[a-z]/.test(p) && /[A-Z]/.test(p) && /\d/.test(p);
+  let staff = [];
+  async function loadStaff() {
+    const ul = $("#staffList");
+    ul.innerHTML = `<li class="muted">載入中…</li>`;
+    try {
+      staff = await api.listStaff();
+      ul.innerHTML = staff.map((s) => {
+        const tags = [
+          `<span class="pill ${s.role === "owner" ? "confirmed" : "pending"}">${ROLE_NAME[s.role]}</span>`,
+          !s.active ? `<span class="pill cancelled">已停用</span>` : "",
+          s.must_change_password ? `<span class="pill shipped">等待首次登入改密碼</span>` : "",
+          s.active && !s.mfa ? `<span class="pill cancelled">尚未綁兩步驟驗證</span>` : ""
+        ].join(" ");
+        const acts = s.is_me ? `<p class="muted small">這是你自己的帳號</p>` : `
+          <div class="srow">
+            <select data-act="role" data-uid="${esc(s.user_id)}" aria-label="角色"><option value="staff"${s.role === "staff" ? " selected" : ""}>員工</option><option value="owner"${s.role === "owner" ? " selected" : ""}>店長</option></select>
+            <button class="btn mini" type="button" data-act="toggle" data-uid="${esc(s.user_id)}">${s.active ? "停用" : "啟用"}</button>
+            <button class="btn mini" type="button" data-act="reset" data-uid="${esc(s.user_id)}">重設密碼</button>
+            <button class="btn mini danger" type="button" data-act="remove" data-uid="${esc(s.user_id)}">移除</button>
+          </div>
+          <div class="sconfirm" id="sc-${esc(s.user_id)}" hidden></div>`;
+        return `<li class="staff${s.active ? "" : " off"}"><div class="sh"><b>${esc(s.email)}</b> ${tags}</div>
+          <p class="muted small">建立於 ${esc(when(s.created_at))}${s.last_sign_in_at ? `・最後登入 ${esc(when(s.last_sign_in_at))}` : "・還沒登入過"}</p>${acts}
+          <p class="save-msg" id="sm-${esc(s.user_id)}" role="status"></p></li>`;
+      }).join("") || `<li class="muted">還沒有員工</li>`;
+    } catch (e) { ul.innerHTML = `<li class="err">${esc(smsg(e))}</li>`; }
+  }
+  $("#sGen").addEventListener("click", () => { $("#sPw").value = genPassword(); $("#sPw").type = "text"; });
+  $("#staffForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = $("#sEmail").value.trim(), role = $("#sRole").value, pw = $("#sPw").value, m = $("#sMsg");
+    m.className = "save-msg"; m.textContent = "";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { m.className = "err"; m.textContent = STAFF_ERR.invalid_email; return; }
+    if (!strong(pw)) { m.className = "err"; m.textContent = STAFF_ERR.weak_password; return; }
+    busy(e.target, true); m.textContent = "建立中…";
+    try {
+      await api.createStaff(email, pw, role);
+      $("#staffForm").reset(); $("#sPw").type = "password";
+      m.innerHTML = `已建立 <b>${esc(email)}</b>。請把 Email 和初始密碼私下交給對方（不要貼在群組）。對方第一次登入會先綁兩步驟驗證，再改成自己的密碼。`;
+      loadStaff();
+    } catch (err) { m.className = "err"; m.textContent = smsg(err); }
+    busy(e.target, false);
+  });
+  $("#staffList").addEventListener("change", async (e) => {
+    const sel = e.target.closest('select[data-act="role"]'); if (!sel) return;
+    const uid = sel.dataset.uid, m = $("#sm-" + uid);
+    sel.disabled = true; m.className = "save-msg"; m.textContent = "儲存中…";
+    try { await api.updateStaff(uid, sel.value, null); m.textContent = `已改為${ROLE_NAME[sel.value]}。`; setTimeout(loadStaff, 900); }
+    catch (err) { m.className = "err"; m.textContent = smsg(err); sel.disabled = false; }
+  });
+  $("#staffList").addEventListener("click", async (e) => {
+    const b = e.target.closest("button[data-act]"); if (!b) return;
+    const uid = b.dataset.uid, s = staff.find((x) => x.user_id === uid), m = $("#sm-" + uid), box = $("#sc-" + uid);
+    if (!s) return;
+    m.className = "save-msg"; m.textContent = "";
+    if (b.dataset.act === "toggle") {
+      b.disabled = true;
+      try { await api.updateStaff(uid, null, !s.active); loadStaff(); } catch (err) { m.className = "err"; m.textContent = smsg(err); b.disabled = false; }
+    } else if (b.dataset.act === "remove") {
+      box.hidden = false;
+      box.innerHTML = `<p>確定要把 ${esc(s.email)} 從員工名單移除嗎？移除後立即無法登入後台。</p><button class="btn danger mini" type="button" data-act="removeYes" data-uid="${esc(uid)}">確定移除</button> <button class="btn mini" type="button" data-act="cancel" data-uid="${esc(uid)}">取消</button>`;
+    } else if (b.dataset.act === "removeYes") {
+      b.disabled = true;
+      try { await api.removeStaff(uid); loadStaff(); } catch (err) { m.className = "err"; m.textContent = smsg(err); b.disabled = false; }
+    } else if (b.dataset.act === "reset") {
+      const pw = genPassword();
+      box.hidden = false;
+      box.innerHTML = `<p>新的初始密碼（可修改）：</p><input class="rpw" id="rp-${esc(uid)}" value="${esc(pw)}" autocomplete="off" spellcheck="false"><p class="muted small">對方下次登入後要再改成自己的密碼。</p><button class="btn primary mini" type="button" data-act="resetYes" data-uid="${esc(uid)}">確定重設</button> <button class="btn mini" type="button" data-act="cancel" data-uid="${esc(uid)}">取消</button>`;
+    } else if (b.dataset.act === "resetYes") {
+      const pw = $("#rp-" + uid).value;
+      if (!strong(pw)) { m.className = "err"; m.textContent = STAFF_ERR.weak_password; return; }
+      b.disabled = true; m.textContent = "重設中…";
+      try { await api.resetStaffPw(uid, pw); box.hidden = true; box.innerHTML = ""; m.innerHTML = `已重設。請把新密碼私下交給 ${esc(s.email)}。`; }
+      catch (err) { m.className = "err"; m.textContent = smsg(err); b.disabled = false; }
+    } else if (b.dataset.act === "cancel") { box.hidden = true; box.innerHTML = ""; }
   });
 
   route();

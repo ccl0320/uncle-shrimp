@@ -14,7 +14,7 @@
 - `config.js`：Supabase 網址與公開金鑰
 - `admin/`：訂單後台
 - `supabase/schema.sql`：資料表、權限規則、下單與後台函式
-- `supabase/002_products_admin.sql`、`003_promotions.sql`、`004_sale_price.sql`、`005_copy.sql`：之後加上的功能，依序在 SQL Editor 執行（可重複執行）
+- `supabase/002_products_admin.sql`、`003_promotions.sql`、`004_sale_price.sql`、`005_copy.sql`、`006_staff.sql`：之後加上的功能，依序在 SQL Editor 執行（可重複執行）
 
 ## 一、建立 Supabase 訂單資料庫
 目前和 melissa-island 共用同一個 Supabase 專案。訂單資料全部放在獨立的 `shop` schema，和小島的 `public.island_docs` 互不影響。
@@ -38,18 +38,26 @@
 4. **Rate Limits**：保留預設即可（登入失敗過多會被限制）。
 5. 付費方案另有「Leaked password protection（擋掉外洩過的密碼）」與「Session 閒置逾時」，營運後可考慮開啟。
 
-## 三、新增管理員帳號
-1. **Authentication → Users → Add user → Send invitation**，輸入管理員 Email。對方會收到信，點連結設定密碼。
-2. 到 **SQL Editor** 執行（把 Email 換成實際的）：
-   ```sql
-   insert into public.admin_users (user_id, email, role)
-   select id, email, 'owner' from auth.users where email = 'owner@example.com';
-   -- 員工帳號把 'owner' 改成 'staff'
-   ```
-3. 管理員第一次登入後台時，會要求用 Google Authenticator 等 App 掃 QR Code 綁定兩步驟驗證。
+## 三、管理員與員工帳號
+**第一個店長帳號**（只需做一次，已完成）：Authentication → Users 建立使用者後，到 SQL Editor 執行
+```sql
+insert into shop.admin_users (user_id, email, role)
+select id, email, 'owner' from auth.users where email = 'owner@example.com';
+```
 
-**停用帳號**：`delete from public.admin_users where email = '…';`，並在 Authentication → Users 刪除該使用者。
-**手機遺失**：在 Authentication → Users 點該使用者 → 移除 MFA factor，對方下次登入會重新綁定。
+**之後新增員工：直接在後台「員工」分頁操作**（只有店長看得到）。需要先完成一次設定：
+1. SQL Editor 執行 `supabase/006_staff.sql`。
+2. 部署 Edge Function：Supabase 左側 **Edge Functions → Deploy a new function → Via Editor**，名稱填 `shop-staff`，把 `supabase/functions/shop-staff/index.ts` 的內容整份貼上取代範例程式，按 **Deploy**。「Verify JWT」保持開啟。
+   - 不需要另外設定任何金鑰：函式會自動取得 Supabase 管理金鑰，金鑰只存在伺服器端，不會出現在網頁上。
+
+使用方式：
+- 店長在「員工」分頁輸入 Email、選角色、按「產生安全密碼」→「建立帳號」，再把帳密**私下**交給對方。
+- 員工第一次登入：先用驗證 App 綁兩步驟驗證，再強制改成自己的密碼（資料庫會檢查密碼真的換過），改好之前看不到任何資料。
+- 可以改角色、停用／啟用、重設密碼、移除，全部立即生效並寫入操作紀錄。不能修改自己的帳號，避免把自己鎖在外面。
+- 不寄任何信，不受 Supabase 免費寄信額度限制。
+- 因為和 melissa-island 共用 Supabase 專案，如果 Email 已經是該專案的使用者，會提示「已經有登入帳號」，請換一個 Email。
+
+**手機遺失**：Authentication → Users 點該使用者 → 移除 MFA factor，對方下次登入會重新綁定。
 
 ### 權限
 | | 店長 owner | 員工 staff |
@@ -60,6 +68,8 @@
 | 看操作紀錄 | ✓ | |
 | 清除舊訂單個資 | ✓ | |
 | 管理商品、上傳圖片 | ✓ | |
+| 管理促銷活動 | ✓ | |
+| 新增／停用／移除員工 | ✓ | |
 
 ## 四、資安設計
 - **顧客端只能下單**：未登入只能呼叫 `place_order`，不能讀任何訂單；價格與運費由資料庫計算，前端改價無效；同一支手機每小時最多 5 筆，防止灌單。

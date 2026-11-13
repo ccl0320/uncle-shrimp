@@ -9,7 +9,7 @@
 <title>舅是好蝦 訂單後台</title>
 <link rel="icon" href="../assets/logo.webp">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap">
-<link rel="stylesheet" href="admin.css?v=20261113d">
+<link rel="stylesheet" href="admin.css?v=20261113f">
 </head>
 <body>
 <header class="bar">
@@ -77,7 +77,8 @@
 
   <!-- 設定新密碼 -->
   <section class="card narrow" id="vNewPw" hidden>
-    <h1>設定新密碼</h1>
+    <h1 id="newPwTitle">設定新密碼</h1>
+    <p class="small" id="newPwHint" hidden>第一次登入：請把店長給你的初始密碼改成只有你知道的新密碼，改好後就能開始使用後台。</p>
     <form id="newPwForm" novalidate>
       <label for="newPw">新密碼（至少 12 個字元，需含英文大小寫與數字）</label>
       <input id="newPw" type="password" autocomplete="new-password" required>
@@ -100,6 +101,7 @@
     <div class="tabs" role="tablist">
       <button class="tab on" type="button" data-tab="orders" role="tab" aria-selected="true">訂單</button>
       <button class="tab" type="button" data-tab="products" role="tab" aria-selected="false" id="productsTab" hidden>商品</button>
+      <button class="tab" type="button" data-tab="staff" role="tab" aria-selected="false" id="staffTab" hidden>員工</button>
       <button class="tab" type="button" data-tab="audit" role="tab" aria-selected="false" id="auditTab" hidden>操作紀錄</button>
     </div>
 
@@ -139,6 +141,23 @@
       <ul class="plist" id="productList"></ul>
     </div>
 
+    <div id="paneStaff" hidden>
+      <form class="card staff-new" id="staffForm" novalidate>
+        <h2>新增員工帳號</h2>
+        <p class="small muted">設定 Email 與初始密碼後，把帳密私下交給對方。對方第一次登入會先綁兩步驟驗證，再強制改成自己的密碼。「員工」可以看訂單、改訂單狀態；「店長」另外可以管理商品、活動、員工與操作紀錄。</p>
+        <label for="sEmail">Email（登入帳號）</label>
+        <input id="sEmail" type="email" autocomplete="off" required>
+        <div class="row2">
+          <div><label for="sRole">角色</label><select id="sRole"><option value="staff">員工</option><option value="owner">店長</option></select></div>
+          <div><label for="sPw">初始密碼</label><input id="sPw" type="password" autocomplete="new-password" spellcheck="false"></div>
+        </div>
+        <button class="btn mini" type="button" id="sGen">產生安全密碼</button>
+        <button class="btn primary" type="submit">建立帳號</button>
+        <p class="save-msg" id="sMsg" role="status"></p>
+      </form>
+      <ul class="stafflist" id="staffList"></ul>
+    </div>
+
     <div id="paneAudit" hidden>
       <div class="purge card">
         <h2>清除舊訂單個資</h2>
@@ -173,6 +192,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="../config.js?v=20261113b"></script>
-<script src="admin.js?v=20261113e"></script>
+<script src="admin.js?v=20261113f"></script>
 </body>
 </html>
