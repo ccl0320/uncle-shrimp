@@ -44,6 +44,7 @@
   if (!DEMO) {
     if (!window.supabase) { document.body.textContent = "無法載入登入元件，請檢查網路後重新整理。"; return; }
     sb = window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseAnonKey, {
+      db: { schema: "shop" },
       auth: { storage: window.sessionStorage, persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
     });
     const rpc = async (fn, args) => { const { data, error } = await sb.rpc(fn, args || {}); if (error) throw error; return data; };

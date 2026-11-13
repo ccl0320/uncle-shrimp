@@ -16,10 +16,14 @@
 - `supabase/schema.sql`：資料表、權限規則、下單與後台函式
 
 ## 一、建立 Supabase 訂單資料庫
-1. 到 [supabase.com](https://supabase.com) 註冊並建立專案，Region 選 **Northeast Asia (Tokyo)** 或 **Southeast Asia (Singapore)**，資料庫密碼用密碼管理工具產生並保存好。
-2. 左側 **SQL Editor** → New query → 貼上 `supabase/schema.sql` 全部內容 → Run。
-3. **Project Settings → API**：複製 `Project URL` 和 `anon public` key，填到 `config.js`。
-   - ⚠️ `service_role` key 絕對不能放進網站或傳給別人。
+目前和 melissa-island 共用同一個 Supabase 專案。訂單資料全部放在獨立的 `shop` schema，和小島的 `public.island_docs` 互不影響。
+
+1. 打開 melissa-island 用的 Supabase 專案，左側 **SQL Editor** → New query → 貼上 `supabase/schema.sql` 全部內容 → Run（重複執行也安全）。
+2. **Project Settings → Data API**（或 API）→ **Exposed schemas** 加入 `shop` → Save。
+3. **Project Settings → API Keys**：複製 `Project URL` 和 **Legacy anon key**（`eyJ` 開頭），填到 `config.js`。
+   - ⚠️ `service_role` / secret key 絕對不能放進網站或傳給別人。
+
+> 營運正式上線、訂單量變多後，建議把 `shop` 搬到獨立的 Supabase 專案：個資和其他網站分開備份、分開管理權限。搬移時只要在新專案執行同一份 schema.sql，再改 `config.js`。
 
 ## 二、帳號安全設定（Authentication）
 1. **Sign In / Providers → Email**：

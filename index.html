@@ -494,6 +494,8 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
   // 訂單資料庫（Supabase）。設定在 config.js；沒設定時只走 LINE 傳送。
   const CFG=window.USC_CONFIG||{};
   const DB=CFG.supabaseUrl&&CFG.supabaseAnonKey?{url:CFG.supabaseUrl,key:CFG.supabaseAnonKey}:null;
+  // 舊版 anon key（eyJ 開頭）同時放在 Authorization；新版 publishable key 只放 apikey
+  const dbAuth=()=>/^eyJ/.test(DB.key)?{apikey:DB.key,Authorization:"Bearer "+DB.key}:{apikey:DB.key};
   const ORDER_ERR={too_many_orders:"這支手機一小時內下單次數太多，請稍後再試或直接 LINE 我們。",invalid_phone:"手機號碼格式不正確。",invalid_address:"請填寫收件地址或門市。",invalid_product:"有商品已下架，請重新整理頁面。",invalid_name:"請填寫收件人姓名。",invalid_qty:"商品數量不正確。"};
   // LINE 官方帳號 ID（例："@unclesshrimp"）。填入後訂單會直接開啟與官方帳號的聊天室並帶入內容；
   // 留空時會開啟 LINE 分享畫面，由顧客自己選擇傳給店家。
@@ -627,7 +629,7 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
     if(DB){
       sbtn.disabled=true;
       try{
-        const res=await fetch(DB.url.replace(/\/$/,"")+"/rest/v1/rpc/place_order",{method:"POST",headers:{"Content-Type":"application/json",apikey:DB.key,Authorization:"Bearer "+DB.key},
+        const res=await fetch(DB.url.replace(/\/$/,"")+"/rest/v1/rpc/place_order",{method:"POST",headers:{"Content-Type":"application/json","Content-Profile":"shop",...dbAuth()},
           body:JSON.stringify({p:{name,phone,ship,address:addr,note,items:Object.entries(cart).map(([id,qty])=>({id,qty}))}})});
         const j=await res.json().catch(()=>({}));
         if(res.ok){no=j.order_no;t={...t,sub:j.subtotal,fee:j.shipping_fee,total:j.total};saved=true}
@@ -667,7 +669,7 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
 
   renderProducts();renderChoices();renderCart();
   // 有資料庫時，以資料庫的價格為準更新畫面
-  if(DB){fetch(DB.url.replace(/\/$/,"")+"/rest/v1/products?select=id,name,spec,price",{headers:{apikey:DB.key,Authorization:"Bearer "+DB.key}})
+  if(DB){fetch(DB.url.replace(/\/$/,"")+"/rest/v1/products?select=id,name,spec,price",{headers:{"Accept-Profile":"shop",...dbAuth()}})
     .then(r=>r.ok?r.json():null).then(rows=>{if(!Array.isArray(rows))return;
       rows.forEach(r=>{const p=PRODUCTS.find(x=>x.id===r.id);if(p){p.name=r.name;p.spec=r.spec;p.price=r.price}});
       for(let i=PRODUCTS.length-1;i>=0;i--)if(!rows.some(r=>r.id===PRODUCTS[i].id)){delete cart[PRODUCTS[i].id];PRODUCTS.splice(i,1)}
