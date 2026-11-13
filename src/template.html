@@ -1,0 +1,638 @@
+<title>舅是好蝦 Uncle’s Shrimp Chips</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="舅是好蝦：舅舅用心炸的手工香脆蝦餅。嚴選鮮蝦、乾淨製作、家傳好味，線上訂購宅配到府。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@500;700;900&family=LXGW+WenKai+TC:wght@700&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<style>
+/* Layout: 溫暖廚房海報感。奶油底 + 橘色波浪色帶分段，圓體大標、手寫體標語，商品卡與訂購表單集中在同一區完成結帳。 */
+:root{
+  --cream:#FFF6E8;        /* 頁面底色 */
+  --paper:#FFFDF8;        /* 卡片 */
+  --butter:#FBE7C6;       /* 次要色塊 */
+  --orange:#E8661E;       /* 品牌主色 */
+  --orange-deep:#C9501A;
+  --red:#C7361B;          /* Logo 紅 */
+  --brown:#4A2510;        /* 主要文字 / Logo 咖啡 */
+  --brown-soft:#7A5236;
+  --line:#EAD3B2;
+  --on-orange:#FFF8EE;
+  --ok:#2F7A4B;
+  --line-green:#06C755;--line-green-deep:#04A346;--on-line:#FFFFFF;
+  --warn-bg:#FFF0C9; --warn-fg:#7A4A00;
+  --shadow:0 10px 30px -14px rgba(122,62,18,.35);
+  --f-display:"Chiron GoRound TC","Huninn","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  --f-hand:"LXGW WenKai TC","Kaiti TC","DFKai-SB",serif;
+  --f-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  --r:18px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --cream:#1E130C;--paper:#2A1B11;--butter:#3A2617;--orange:#F07F38;--orange-deep:#F59A5C;--red:#F0694D;
+  --brown:#F8E8D2;--brown-soft:#D6B898;--line:#4A3221;--on-orange:#24150B;--ok:#7BCB98;
+  --warn-bg:#4A3510;--warn-fg:#FFD98A;--shadow:0 10px 30px -14px rgba(0,0,0,.7);color-scheme:dark}}
+:root[data-theme="dark"]{
+  --cream:#1E130C;--paper:#2A1B11;--butter:#3A2617;--orange:#F07F38;--orange-deep:#F59A5C;--red:#F0694D;
+  --brown:#F8E8D2;--brown-soft:#D6B898;--line:#4A3221;--on-orange:#24150B;--ok:#7BCB98;
+  --warn-bg:#4A3510;--warn-fg:#FFD98A;--shadow:0 10px 30px -14px rgba(0,0,0,.7);color-scheme:dark}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:84px}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+body{background:var(--cream);color:var(--brown);font-family:var(--f-body);font-size:16px;line-height:1.75;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:60;background:var(--cream)}
+h1,h2,h3{font-family:var(--f-display);font-weight:900;line-height:1.25;text-wrap:balance;margin:0}
+p{margin:0}
+a{color:inherit}
+img{display:block;max-width:100%;height:auto}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--orange);outline-offset:3px;border-radius:6px}
+.wrap{max-width:1120px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.eyebrow{font-family:var(--f-display);font-weight:700;color:var(--orange);letter-spacing:.12em;font-size:.82rem;text-transform:uppercase}
+.hand{font-family:var(--f-hand);font-weight:700}
+.tbd{display:inline-flex;align-items:center;gap:4px;background:var(--warn-bg);color:var(--warn-fg);font-size:.72rem;font-weight:700;padding:2px 8px;border-radius:999px;line-height:1.5;white-space:nowrap;vertical-align:middle}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;cursor:pointer;text-decoration:none;font-family:var(--f-display);font-weight:700;border-radius:999px;padding:12px 24px;font-size:1rem;transition:transform .15s ease,background .15s ease}
+.btn:active{transform:translateY(1px)}
+.btn-primary{background:var(--orange);color:var(--on-orange);box-shadow:0 4px 0 var(--orange-deep)}
+.btn-primary:hover{background:var(--orange-deep)}
+.btn-ghost{background:transparent;color:var(--brown);border:2px solid var(--brown)}
+.btn-ghost:hover{background:var(--butter)}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.btn-line{background:var(--line-green);color:var(--on-line);box-shadow:0 4px 0 var(--line-green-deep)}
+.btn-line:hover{background:var(--line-green-deep)}
+.btn-line svg{width:22px;height:22px;flex-shrink:0}
+.btn{min-height:44px}
+
+/* Header */
+.site-head{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;background:color-mix(in srgb,var(--cream) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.head-row{display:flex;align-items:center;gap:16px;height:68px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;flex-shrink:0}
+.brand img{width:52px;height:auto}
+.brand b{font-family:var(--f-display);font-weight:900;font-size:1.2rem;line-height:1.1}
+.brand small{display:block;font-size:.62rem;letter-spacing:.14em;color:var(--brown-soft);font-family:var(--f-display);font-weight:700}
+.nav{display:flex;gap:4px;margin-left:auto}
+.nav a{text-decoration:none;font-weight:500;padding:8px 12px;border-radius:999px;font-size:.95rem}
+.nav a:hover{background:var(--butter)}
+.cart-btn{position:relative;margin-left:8px;background:var(--brown);color:var(--cream);border:0;border-radius:999px;padding:8px 16px;display:flex;align-items:center;gap:6px;cursor:pointer;font-weight:700;text-decoration:none;font-size:.95rem}
+.cart-btn .count{background:var(--orange);color:var(--on-orange);min-width:22px;height:22px;border-radius:999px;display:inline-grid;place-items:center;font-size:.78rem;padding:0 6px;font-variant-numeric:tabular-nums}
+@media (max-width:760px){.nav{display:none}.cart-btn{margin-left:auto}}
+
+/* Hero */
+.hero{position:relative;overflow:hidden}
+.hero-grid{display:grid;grid-template-columns:1.05fr 1fr;gap:40px;align-items:center;padding-block:48px 72px}
+.hero-copy{display:grid;gap:20px;min-width:0}
+.hero .hand{font-size:clamp(1.5rem,3.4vw,2.1rem);color:var(--orange-deep);transform:rotate(-2deg);transform-origin:left}
+.hero h1{font-size:clamp(2.1rem,5.4vw,3.6rem)}
+.hero h1 em{font-style:normal;color:var(--red);position:relative;white-space:nowrap}
+.hero h1 em::after{content:"";position:absolute;left:0;right:0;bottom:.02em;height:.22em;background:var(--orange);opacity:.28;border-radius:999px;z-index:-1}
+.hero-lead{font-size:1.08rem;color:var(--brown-soft);max-width:30em}
+.hero-cta{display:flex;flex-wrap:wrap;gap:12px}
+.hero-art{position:relative;min-width:0}
+.hero-art img{border-radius:28px;box-shadow:var(--shadow);border:6px solid var(--paper)}
+.hero-art .sticker{position:absolute;right:-6px;bottom:-18px;background:var(--red);color:var(--on-orange);font-family:var(--f-display);font-weight:900;width:112px;height:112px;border-radius:50%;display:grid;place-items:center;text-align:center;line-height:1.2;font-size:1rem;transform:rotate(10deg);box-shadow:var(--shadow);border:4px dashed color-mix(in srgb,var(--on-orange) 55%,transparent)}
+@media (max-width:860px){.hero-grid{grid-template-columns:1fr;padding-block:28px 56px;gap:28px}.hero-art .sticker{width:92px;height:92px;font-size:.85rem;right:4px}}
+
+/* Wave band */
+.wave{display:block;width:100%;height:48px;color:var(--orange)}
+.points{background:var(--orange);color:var(--on-orange)}
+.points ul{list-style:none;margin:0;display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding-block:20px 40px}
+.points li{display:flex;gap:14px;align-items:center;min-width:0}
+.points .ico{flex-shrink:0;width:64px;height:64px;border-radius:50%;background:var(--on-orange);color:var(--orange);display:grid;place-items:center}
+.points .ico svg{width:36px;height:36px}
+.points h3{font-size:1.3rem}
+.points p{opacity:.9;font-size:.95rem;line-height:1.5}
+@media (max-width:760px){.points ul{grid-template-columns:1fr;gap:14px}}
+
+section.block{padding-block:72px}
+.sec-head{display:grid;gap:8px;margin-bottom:32px;max-width:40em}
+.sec-head h2{font-size:clamp(1.7rem,3.6vw,2.4rem)}
+.sec-head p{color:var(--brown-soft)}
+
+/* Story */
+.story-grid{display:grid;grid-template-columns:1fr 1.1fr;gap:48px;align-items:center}
+.story-img{position:relative}
+.story-img img{border-radius:24px;box-shadow:var(--shadow);transform:rotate(-1.5deg);border:6px solid var(--paper)}
+.story-img .note{position:absolute;left:-8px;bottom:-22px;background:var(--paper);border:2px solid var(--line);padding:10px 16px;border-radius:14px;font-size:1.15rem;transform:rotate(-3deg);color:var(--orange-deep)}
+.story-text{display:grid;gap:16px;min-width:0}
+.story-text p{max-width:34em}
+.story-text blockquote{margin:8px 0 0;padding:16px 20px;background:var(--butter);border-radius:16px;font-size:1.3rem;line-height:1.6}
+.story-text blockquote cite{display:block;font-family:var(--f-body);font-size:.85rem;font-style:normal;color:var(--brown-soft);margin-top:6px;font-weight:500}
+@media (max-width:860px){.story-grid{grid-template-columns:1fr;gap:40px}}
+
+/* Process */
+.process{background:var(--butter)}
+.steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,1fr);gap:16px;counter-reset:s}
+.steps li{background:var(--paper);border-radius:var(--r);padding:22px 20px;display:grid;gap:8px;align-content:start;counter-increment:s;position:relative}
+.steps li::before{content:counter(s);font-family:var(--f-display);font-weight:900;width:38px;height:38px;border-radius:50%;background:var(--orange);color:var(--on-orange);display:grid;place-items:center;font-size:1.1rem}
+.steps h3{font-size:1.15rem}
+.steps p{font-size:.93rem;color:var(--brown-soft);line-height:1.6}
+@media (max-width:900px){.steps{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:480px){.steps{grid-template-columns:1fr}}
+
+/* Products */
+.notice{display:flex;gap:10px;align-items:flex-start;background:var(--warn-bg);color:var(--warn-fg);padding:12px 16px;border-radius:14px;font-size:.92rem;margin-bottom:24px;line-height:1.6}
+.grid-products{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+@media (max-width:1000px){.grid-products{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:520px){
+  .grid-products{grid-template-columns:1fr;gap:12px}
+  .card{grid-template-columns:118px 1fr;grid-template-rows:none;border-radius:18px}
+  .card-img{aspect-ratio:auto;width:108px;height:120px;align-self:start;margin:10px 0 10px 10px;border-radius:14px}
+  .card-img .multi img{margin:0 -14%}
+  .card-img .giftbox{width:66%;height:58%}
+  .card-img .demo{display:none}
+  .card-img .tag{left:8px;top:8px;font-size:.7rem;padding:1px 8px}
+  .card-body{padding:12px 12px 12px 12px;gap:4px;grid-template-rows:none}
+  .card h3{font-size:1.05rem}
+  .card .spec{font-size:.8rem}
+  .card .desc{font-size:.82rem;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .price{font-size:1.25rem}
+  .price-row .tbd{font-size:.65rem}
+  .buy-row{margin-top:6px!important}
+  .buy-row .btn{padding:8px 10px;font-size:.88rem;white-space:nowrap}
+  .qty input{width:26px}
+  .qty button{width:36px;height:40px}
+  .added{min-height:0}
+  section.block{padding-block:48px}
+  .sec-head{margin-bottom:20px}
+}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:22px;overflow:hidden;display:grid;grid-template-rows:auto 1fr;box-shadow:var(--shadow)}
+.card-img{aspect-ratio:4/3;max-width:100%;background:radial-gradient(circle at 50% 60%,var(--butter),var(--cream));display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.card-img>img{height:86%;width:auto;max-width:90%;object-fit:contain;filter:drop-shadow(0 8px 10px rgba(90,40,10,.18))}
+.card-img .multi{display:flex;align-items:flex-end;justify-content:center;height:88%}
+.card-img .multi img{height:100%;width:auto;margin:0 -9%;filter:drop-shadow(0 8px 10px rgba(90,40,10,.18))}
+.card-img .multi img:nth-child(1){transform:rotate(-9deg) scale(.86)}
+.card-img .multi img:nth-child(3){transform:rotate(9deg) scale(.86)}
+.card-img .multi img:nth-child(2){position:relative;z-index:1}
+.giftbox{position:relative;width:62%;height:66%;margin-top:8%;background:var(--orange);border-radius:10px;display:grid;place-items:center;box-shadow:inset 0 -10px 0 var(--orange-deep),0 12px 18px -10px rgba(90,40,10,.4)}
+.giftbox::before{content:"";position:absolute;left:50%;top:0;bottom:0;width:13%;transform:translateX(-50%);background:var(--red)}
+.giftbox .lid{position:absolute;left:-5%;right:-5%;top:-8%;height:22%;background:var(--orange-deep);border-radius:8px}
+.giftbox .lid::after{content:"";position:absolute;left:50%;top:0;bottom:0;width:12%;transform:translateX(-50%);background:var(--red)}
+.giftbox .bow{position:absolute;left:50%;top:-26%;width:30%;height:22%;transform:translateX(-50%);border:6px solid var(--red);border-radius:50% 50% 30% 30%;z-index:1}
+.giftbox img{position:relative;width:54%;height:auto;max-height:none;margin-top:12%;z-index:1;filter:drop-shadow(0 4px 6px rgba(60,20,0,.3))}
+.card-img.bowl>img{height:100%;width:100%;max-width:100%;object-fit:cover}
+.card-img .tag{z-index:2;position:absolute;left:12px;top:12px;background:var(--red);color:var(--on-orange);font-family:var(--f-display);font-weight:700;font-size:.78rem;padding:3px 10px;border-radius:999px}
+.card-img .demo{z-index:2;position:absolute;right:10px;bottom:8px;font-size:.68rem;color:var(--brown-soft);background:color-mix(in srgb,var(--paper) 80%,transparent);padding:0 6px;border-radius:6px}
+.card-body{padding:18px 18px 20px;display:grid;gap:10px;align-content:start;grid-template-rows:auto auto 1fr auto}
+.card h3{font-size:1.2rem}
+.card .spec{font-size:.86rem;color:var(--brown-soft)}
+.card .desc{font-size:.92rem;line-height:1.6}
+.price-row{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.price{font-family:var(--f-display);font-weight:900;font-size:1.45rem;color:var(--red);font-variant-numeric:tabular-nums}
+.price small{font-size:.8rem;margin-right:2px}
+.buy-row{display:flex;gap:8px;align-items:center}
+.qty{display:inline-flex;align-items:center;border:2px solid var(--line);border-radius:999px;overflow:hidden;background:var(--cream)}
+.qty button{width:34px;height:36px;border:0;background:transparent;cursor:pointer;font-size:1.1rem;font-weight:700}
+.qty button:hover{background:var(--butter)}
+.qty input{width:34px;text-align:center;border:0;background:transparent;font-weight:700;font-variant-numeric:tabular-nums;-moz-appearance:textfield}
+.qty input::-webkit-inner-spin-button{-webkit-appearance:none}
+.buy-row .btn{flex:1;padding:9px 14px;font-size:.95rem}
+.added{font-size:.82rem;color:var(--ok);font-weight:700;min-height:1.4em}
+
+/* FAQ */
+.faq-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 24px;align-items:start}
+@media (max-width:760px){.faq-grid{grid-template-columns:1fr}}
+details{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:14px 18px}
+summary{cursor:pointer;font-weight:700;list-style:none;display:flex;justify-content:space-between;gap:12px;align-items:center}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";font-family:var(--f-display);font-size:1.4rem;color:var(--orange);line-height:1}
+details[open] summary::after{content:"–"}
+details p{margin-top:10px;color:var(--brown-soft);font-size:.95rem}
+
+/* Order */
+.order{background:var(--butter)}
+.order-grid{display:grid;grid-template-columns:1fr 1.15fr;gap:28px;align-items:start}
+@media (max-width:900px){.order-grid{grid-template-columns:1fr}}
+.panel{background:var(--paper);border-radius:22px;padding:24px;box-shadow:var(--shadow);min-width:0}
+.panel h3{font-size:1.3rem;margin-bottom:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.cart-list{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.cart-item{display:grid;grid-template-columns:56px 1fr auto;gap:12px;align-items:center;padding-bottom:12px;border-bottom:1px dashed var(--line)}
+.cart-item img{width:56px;height:56px;object-fit:contain;background:var(--cream);border-radius:12px;padding:4px}
+.cart-item .nm{font-weight:700;line-height:1.4}
+.cart-item .sub{font-size:.82rem;color:var(--brown-soft)}
+.cart-item .right{display:grid;justify-items:end;gap:4px}
+.cart-item .line{font-weight:700;font-variant-numeric:tabular-nums}
+.rm{background:none;border:0;color:var(--brown-soft);font-size:.8rem;cursor:pointer;text-decoration:underline;padding:0}
+.qty.sm button{width:28px;height:30px}.qty.sm input{width:28px;font-size:.9rem}
+.empty{text-align:center;padding:24px 8px;color:var(--brown-soft);display:grid;gap:12px;justify-items:center}
+.empty img{width:120px;opacity:.9}
+.totals{display:grid;gap:6px;margin-top:16px;font-variant-numeric:tabular-nums}
+.totals div{display:flex;justify-content:space-between}
+.totals .grand{font-family:var(--f-display);font-weight:900;font-size:1.35rem;color:var(--red);border-top:2px solid var(--line);padding-top:10px;margin-top:4px}
+.ship-hint{font-size:.85rem;background:var(--cream);border-radius:12px;padding:8px 12px;margin-top:12px}
+.ship-bar{height:8px;background:var(--line);border-radius:999px;overflow:hidden;margin-top:6px}
+.ship-bar i{display:block;height:100%;background:var(--orange);border-radius:999px;transition:width .3s}
+
+form .row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:520px){form .row{grid-template-columns:1fr}}
+.field{display:grid;gap:6px;margin-bottom:14px;min-width:0}
+.field label,.field legend{font-weight:700;font-size:.92rem}
+.field .req{color:var(--red);margin-left:2px}
+.field input,.field select,.field textarea{width:100%;border:2px solid var(--line);background:var(--cream);border-radius:12px;padding:10px 12px;min-height:46px}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--orange);outline:none}
+.field textarea{min-height:84px;resize:vertical}
+.field .err{color:var(--red);font-size:.82rem;min-height:0}
+.field.invalid input,.field.invalid select{border-color:var(--red)}
+fieldset.field{border:0;padding:0;margin:0 0 14px}
+.choices{display:grid;gap:8px}
+.choice{display:flex;align-items:center;gap:10px;border:2px solid var(--line);border-radius:12px;padding:10px 12px;cursor:pointer;background:var(--cream)}
+.choice:has(input:checked){border-color:var(--orange);background:color-mix(in srgb,var(--orange) 10%,var(--cream))}
+.choice:has(input:disabled){opacity:.55;cursor:not-allowed}
+.choice input{accent-color:var(--orange);width:18px;height:18px;margin:0;flex-shrink:0}
+.choice span{flex:1;min-width:0}
+.choice b{font-weight:700}
+.choice small{display:block;color:var(--brown-soft);font-size:.8rem;line-height:1.4}
+.choice .fee{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.agree{display:flex;gap:10px;align-items:flex-start;font-size:.9rem;margin:6px 0 16px}
+.agree input{accent-color:var(--orange);width:18px;height:18px;margin-top:4px}
+.submit{width:100%;font-size:1.1rem;padding:14px}
+.form-note{font-size:.82rem;color:var(--brown-soft);margin-top:10px;text-align:center}
+
+.done{display:grid;gap:16px;text-align:center;justify-items:center}
+.done img{width:140px}
+.done .no{font-family:var(--f-display);font-weight:900;font-size:1.5rem;color:var(--red);letter-spacing:.04em}
+.done pre{white-space:pre-wrap;text-align:left;background:var(--cream);border:1px dashed var(--line);border-radius:14px;padding:14px 16px;font-family:var(--f-body);font-size:.88rem;width:100%;margin:0;max-height:320px;overflow:auto}
+.done .acts{display:grid;gap:10px;width:100%}
+.done .acts .btn{width:100%}
+.done .acts .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.done .step{font-weight:700;color:var(--brown)}
+.line-how{font-size:.85rem;color:var(--brown-soft);text-align:left;background:var(--cream);border-radius:12px;padding:10px 14px;width:100%}
+
+/* Mobile checkout bar */
+.mbar{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--brown);color:var(--cream);padding:10px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:none;align-items:center;gap:12px}
+.mbar .sum{flex:1;line-height:1.3;font-variant-numeric:tabular-nums}
+.mbar .sum b{font-family:var(--f-display);font-size:1.2rem}
+.mbar .btn{padding:10px 18px}
+@media (max-width:900px){.mbar.show{display:flex}body.has-bar{padding-bottom:72px}}
+
+footer{background:var(--brown);color:var(--cream)}
+:root[data-theme="dark"] footer{background:#140C07}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) footer{background:#140C07}}
+.foot{display:grid;grid-template-columns:auto 1fr 1fr;gap:32px;padding-block:44px;align-items:start}
+.foot img{width:110px}
+.foot h4{font-family:var(--f-display);margin:0 0 8px;font-size:1.05rem}
+.foot p,.foot li{font-size:.9rem;opacity:.85}
+.foot ul{list-style:none;padding:0;margin:0;display:grid;gap:4px}
+.copy{border-top:1px solid color-mix(in srgb,var(--cream) 20%,transparent);padding-block:16px;font-size:.8rem;opacity:.7}
+@media (max-width:760px){.foot{grid-template-columns:1fr;gap:20px}}
+footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inherit}
+</style>
+
+<header class="site-head">
+  <div class="wrap head-row">
+    <a class="brand" href="#top" aria-label="舅是好蝦 回到頂端">
+      <img src="{{LOGO}}" alt="" width="52" height="47">
+      <span><b>舅是好蝦</b><small>UNCLE’S SHRIMP CHIPS</small></span>
+    </a>
+    <nav class="nav" aria-label="主選單">
+      <a href="#products">產品</a>
+      <a href="#story">品牌故事</a>
+      <a href="#process">手工製程</a>
+      <a href="#faq">購買須知</a>
+    </nav>
+    <a class="cart-btn" href="#order" aria-label="前往購物車">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4h2l2.4 11.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.5L21 8H6.2"/><circle cx="10" cy="20" r="1.3" fill="currentColor"/><circle cx="17" cy="20" r="1.3" fill="currentColor"/></svg>
+      購物車 <span class="count" id="cartCount">0</span>
+    </a>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <p class="hand">舅舅用心炸的香脆蝦餅！</p>
+        <h1>一口咬下，<br><em>喀滋</em>都是鮮蝦香</h1>
+        <p class="hero-lead">舅是好蝦堅持用真正的鮮蝦打漿，少量手工製作、每批現炸。沒有花俏的包裝話術，只有舅舅做給自家孩子吃的那一味。</p>
+        <div class="hero-cta">
+          <a class="btn btn-primary" href="#products">立即選購</a>
+          <a class="btn btn-ghost" href="#story">認識舅舅</a>
+        </div>
+      </div>
+      <div class="hero-art">
+        <img src="{{HERO}}" alt="穿著圍裙的舅舅與吃著蝦餅開心大笑的小女孩，桌上有一碗蝦餅、鮮蝦與舅是好蝦包裝袋" width="1180" height="1080">
+        <div class="sticker">每批<br>手工現炸</div>
+      </div>
+    </div>
+  </section>
+
+  <div aria-hidden="true">
+    <svg class="wave" viewBox="0 0 1440 48" preserveAspectRatio="none"><path fill="currentColor" d="M0 30 C 240 0 420 52 720 26 S 1200 4 1440 28 V48 H0Z"/></svg>
+  </div>
+  <section class="points" aria-label="三大堅持">
+    <div class="wrap">
+      <ul>
+        <li><span class="ico"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M34 12c-9-4-21 1-23 12-1 6 3 12 9 13"/><path d="M34 12c4 3 6 8 4 13-2 6-9 9-15 8"/><path d="M20 37c-2 3-6 4-9 3 2-2 3-4 3-6"/><path d="M17 22c3 1 5 3 6 6M23 17c3 2 5 4 6 8"/><path d="M34 12l7-5M36 15l8-2"/><circle cx="31" cy="16" r="1.2" fill="currentColor"/></svg></span><div><h3>嚴選鮮蝦</h3><p>真材實料，吃得到蝦的鮮甜</p></div></li>
+        <li><span class="ico"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 28c-5 0-8-4-7-8s5-6 9-5c1-5 5-8 9-8s8 3 9 8c4-1 8 1 9 5s-2 8-7 8"/><path d="M14 28v10h20V28"/><path d="M19 22c1 2 3 3 5 3s4-1 5-3"/></svg></span><div><h3>乾淨製作</h3><p>衛生安心，每一片都講究</p></div></li>
+        <li><span class="ico"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M24 39S8 29.5 8 18.5C8 13 12 9 17 9c3 0 5.5 1.6 7 4 1.5-2.4 4-4 7-4 5 0 9 4 9 9.5C40 29.5 24 39 24 39Z"/></svg></span><div><h3>家傳好味</h3><p>大人小孩都愛的老味道</p></div></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="block" id="products">
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="eyebrow">Products</p>
+        <h2>挑一包，帶回家分享</h2>
+        <p>少量手工製作，每週出貨。加入購物車後，到下方填寫訂購資料即可完成訂購。</p>
+      </div>
+      <p class="notice"><span aria-hidden="true">⚑</span><span>以下品項、規格與價格皆為示意，正式上線前會換成實際內容。商品圖取自主視覺，之後可換成實拍照片。</span></p>
+      <div class="grid-products" id="productGrid"></div>
+    </div>
+  </section>
+  <section class="block" id="story">
+    <div class="wrap story-grid">
+      <div class="story-img">
+        <img src="{{FAMILY}}" alt="舅舅看著外甥女開心吃蝦餅" width="760" height="600" loading="lazy">
+        <p class="note hand">「舅舅，再一片！」</p>
+      </div>
+      <div class="story-text">
+        <p class="eyebrow">Our Story</p>
+        <h2>從家裡廚房炸出來的好味道</h2>
+        <p>每逢過年過節，舅舅總會在廚房炸上一大盆蝦餅。油鍋一響，孩子們就圍過來等著搶第一片。那種剛起鍋、還帶著鮮蝦香氣的酥脆，是家裡每個人共同的回憶。</p>
+        <p>後來親朋好友吃過都說：「這個應該拿出去賣！」於是有了舅是好蝦。我們沿用家裡的配方和做法，挑選新鮮的蝦，一批一批慢慢做，只希望你吃到的，和我們家餐桌上的一樣。</p>
+        <blockquote class="hand">做給外面的人吃，就跟做給自己家孩子吃一樣。<cite>舅是好蝦 舅舅</cite></blockquote>
+        <p><span class="tbd">⚑ 故事文案為草稿，請提供真實品牌故事</span></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block process" id="process">
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="eyebrow">Handmade Process</p>
+        <h2>一片蝦餅的手工旅程</h2>
+        <p>從選蝦到起鍋，每一步都由舅舅親手把關。<span class="tbd">⚑ 製程步驟待確認</span></p>
+      </div>
+      <ol class="steps">
+        <li><h3>挑選鮮蝦</h3><p>每批進貨親自挑選，去殼去腸泥，只用新鮮的蝦肉。</p></li>
+        <li><h3>打漿調味</h3><p>蝦肉與粉漿依家傳比例拌勻，保留蝦的原味，不靠重口味掩蓋。</p></li>
+        <li><h3>蒸製切片</h3><p>蒸熟定型後切成薄片，再慢慢乾燥，讓口感更酥脆。</p></li>
+        <li><h3>少量現炸</h3><p>小鍋少量油炸、瀝油放涼，確認每片膨脹酥脆後才封袋。</p></li>
+      </ol>
+    </div>
+  </section>
+
+
+  <section class="block" id="faq">
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="eyebrow">FAQ</p>
+        <h2>購買須知</h2>
+        <p>以下內容為預設草稿 <span class="tbd">⚑ 待確認</span></p>
+      </div>
+      <div class="faq-grid">
+        <details open><summary>多久會出貨？</summary><p>蝦餅為少量手工現做，完成訂購並確認付款後，約 3 至 5 個工作天出貨。節慶檔期訂單較多，出貨時間可能延長。</p></details>
+        <details><summary>運費怎麼算？</summary><p>宅配 NT$150、超商取貨 NT$70，單筆訂單滿 NT$1,200 免運費。也可預約到店自取，不收運費。</p></details>
+        <details><summary>可以放多久？怎麼保存？</summary><p>未開封常溫保存約 3 個月，請放在陰涼乾燥處、避免陽光直射。開封後請盡快食用完畢，或用夾子密封保持酥脆。</p></details>
+        <details><summary>有哪些過敏原？</summary><p>本產品含有蝦（甲殼類），並在處理其他海鮮的環境製作，對甲殼類或海鮮過敏者請勿食用。</p></details>
+        <details><summary>可以大量訂購或送禮嗎？</summary><p>可以！公司行號、婚禮小物、節慶送禮等大量訂購，請在訂購備註留言，或透過 LINE 聯繫我們報價。</p></details>
+        <details><summary>收到商品破損怎麼辦？</summary><p>蝦餅較為酥脆，運送中少量碎片屬正常情況。若整包嚴重破損，請於收到後 3 天內拍照聯繫我們處理。</p></details>
+      </div>
+    </div>
+  </section>
+
+  <section class="block order" id="order">
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="eyebrow">Order</p>
+        <h2>線上訂購</h2>
+        <p>確認購物車內容，填寫收件資料就完成了。我們收到訂單後會與你聯繫確認。</p>
+      </div>
+      <div class="order-grid">
+        <div class="panel" id="cartPanel" aria-live="polite">
+          <h3>購物車</h3>
+          <div id="cartBody"></div>
+        </div>
+        <div class="panel" id="formPanel">
+          <form id="orderForm" novalidate>
+            <h3>收件與付款資料 <span class="tbd">約 1 分鐘</span></h3>
+            <div class="row">
+              <div class="field"><label for="f-name">收件人姓名<span class="req">*</span></label><input id="f-name" name="name" autocomplete="name" required><span class="err"></span></div>
+              <div class="field"><label for="f-phone">手機號碼<span class="req">*</span></label><input id="f-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="09xx-xxx-xxx" required><span class="err"></span></div>
+            </div>
+
+            <fieldset class="field">
+              <legend>取貨方式<span class="req">*</span></legend>
+              <div class="choices" id="shipChoices"></div>
+            </fieldset>
+
+            <div class="field" id="addrField"><label for="f-addr" id="addrLabel">收件地址<span class="req">*</span></label><input id="f-addr" name="address" autocomplete="street-address"><span class="err"></span></div>
+
+            <fieldset class="field">
+              <legend>付款方式<span class="req">*</span></legend>
+              <div class="choices" id="payChoices"></div>
+            </fieldset>
+
+            <div class="field"><label for="f-note">備註</label><textarea id="f-note" name="note" placeholder="希望到貨時段、送禮卡片內容、大量訂購需求…"></textarea></div>
+
+            <label class="agree"><input type="checkbox" id="f-agree" required><span>我已閱讀購買須知，並了解本產品含甲殼類（蝦）。</span></label>
+            <button class="btn btn-line submit" type="submit" id="submitBtn"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3C6.5 3 2 6.6 2 11c0 3.9 3.5 7.2 8.3 7.9.3.1.8.2.9.5.1.3.1.7 0 1l-.1.9c0 .3-.2 1 .9.5s5.9-3.5 8-6c1.4-1.6 2-3.2 2-4.8C22 6.6 17.5 3 12 3Zm-3.9 10.6H6.2a.5.5 0 0 1-.5-.5V9.2a.5.5 0 0 1 1 0v3.4h1.4a.5.5 0 0 1 0 1Zm2 -.5a.5.5 0 0 1-1 0V9.2a.5.5 0 0 1 1 0Zm4.6 0a.5.5 0 0 1-.9.3l-2-2.7v2.4a.5.5 0 0 1-1 0V9.2a.5.5 0 0 1 .9-.3l2 2.7V9.2a.5.5 0 0 1 1 0Zm3.1-2.5a.5.5 0 0 1 0 1h-1.4v.9h1.4a.5.5 0 0 1 0 1h-1.9a.5.5 0 0 1-.5-.5V9.2c0-.3.2-.5.5-.5h1.9a.5.5 0 0 1 0 1h-1.4v.9Z"/></svg>確認訂單，用 LINE 傳給我們</button>
+            <p class="form-note">下一步會開啟 LINE，訂單內容已自動帶入，按「傳送」就完成訂購。</p>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="mbar" id="mbar" role="region" aria-label="結帳列">
+  <div class="sum"><span id="mbarCount">0 件</span><br><b id="mbarTotal">NT$0</b></div>
+  <a class="btn btn-line" href="#order"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3C6.5 3 2 6.6 2 11c0 3.9 3.5 7.2 8.3 7.9.3.1.8.2.9.5.1.3.1.7 0 1l-.1.9c0 .3-.2 1 .9.5s5.9-3.5 8-6c1.4-1.6 2-3.2 2-4.8C22 6.6 17.5 3 12 3Zm-3.9 10.6H6.2a.5.5 0 0 1-.5-.5V9.2a.5.5 0 0 1 1 0v3.4h1.4a.5.5 0 0 1 0 1Zm2 -.5a.5.5 0 0 1-1 0V9.2a.5.5 0 0 1 1 0Zm4.6 0a.5.5 0 0 1-.9.3l-2-2.7v2.4a.5.5 0 0 1-1 0V9.2a.5.5 0 0 1 .9-.3l2 2.7V9.2a.5.5 0 0 1 1 0Zm3.1-2.5a.5.5 0 0 1 0 1h-1.4v.9h1.4a.5.5 0 0 1 0 1h-1.9a.5.5 0 0 1-.5-.5V9.2c0-.3.2-.5.5-.5h1.9a.5.5 0 0 1 0 1h-1.4v.9Z"/></svg>填資料下單</a>
+</div>
+
+<footer>
+  <div class="wrap foot">
+    <img src="{{LOGO}}" alt="舅是好蝦 Logo" width="110" height="100" loading="lazy">
+    <div>
+      <h4>聯絡我們</h4>
+      <ul>
+        <li>LINE 官方帳號：@unclesshrimp <span class="tbd">待提供</span></li>
+        <li>電話：0900-000-000 <span class="tbd">待提供</span></li>
+        <li>Email：hello@example.com <span class="tbd">待提供</span></li>
+      </ul>
+    </div>
+    <div>
+      <h4>舅是好蝦</h4>
+      <p>手工炸蝦餅・少量現做・宅配全台</p>
+      <p>營業登記與食品業者登錄字號 <span class="tbd">待提供</span></p>
+    </div>
+  </div>
+  <div class="wrap copy">© 2026 舅是好蝦 Uncle’s Shrimp Chips</div>
+</footer>
+
+<script>
+(function(){
+  const IMG={bag:"{{BAG}}",bowl:"{{BOWL}}",logo:"{{LOGO}}"};
+  // 商品資料：之後只要改這裡就能更新品項與價格（皆為示意，待確認）
+  const PRODUCTS=[
+    {id:"original",name:"原味手工蝦餅",spec:"單包 100g",price:180,tag:"招牌",img:"bag",desc:"最經典的鮮蝦原味，酥脆不油膩，配茶、配啤酒都對味。"},
+    {id:"family",name:"家庭分享包",spec:"大包 250g",price:399,tag:"",img:"bowl",desc:"一家人一起吃剛剛好，追劇、聚會的最佳零嘴。"},
+    {id:"trio",name:"原味三入組",spec:"100g × 3 包",price:499,tag:"人氣",img:"trio",desc:"自己吃、分朋友都方便，比單買更划算。"},
+    {id:"gift",name:"好蝦送禮盒",spec:"100g × 6 包・附提袋",price:990,tag:"送禮",img:"gift",desc:"過年過節、伴手禮首選，可加購手寫祝福卡。"}
+  ];
+  const SHIP=[
+    {id:"home",name:"宅配到府",note:"黑貓或郵局宅配，約 3–5 個工作天出貨",fee:150},
+    {id:"cvs",name:"超商取貨",note:"7-11 / 全家，填寫取貨門市名稱",fee:70},
+    {id:"pickup",name:"預約自取",note:"自取地點與時間，將由我們另行聯繫確認",fee:0}
+  ];
+  const FREE=1200;
+  // LINE 官方帳號 ID（例："@unclesshrimp"）。填入後訂單會直接開啟與官方帳號的聊天室並帶入內容；
+  // 留空時會開啟 LINE 分享畫面，由顧客自己選擇傳給店家。
+  const LINE_OA="";
+  const lineURL=t=>LINE_OA?`https://line.me/R/oaMessage/${encodeURIComponent(LINE_OA)}/?${encodeURIComponent(t)}`:`https://line.me/R/share?text=${encodeURIComponent(t)}`;
+  // LIFF ID（LINE Developers 建立 LIFF app 後取得，例："2001234567-AbCdEfGh"）。
+  // 填入後，從 LINE 圖文選單開啟此頁時，送出訂單會直接用 liff.sendMessages 傳到官方帳號聊天室。
+  const LIFF_ID="";
+  let liffReady=false;
+  if(LIFF_ID){
+    const sc=document.createElement("script");
+    sc.src="https://static.line-scdn.net/liff/edge/2/sdk.js";
+    sc.onload=()=>{liff.init({liffId:LIFF_ID}).then(()=>{liffReady=true;
+      if(liff.isInClient()&&liff.isLoggedIn()){liff.getProfile().then(pf=>{const n=document.getElementById("f-name");if(n&&!n.value)n.value=pf.displayName}).catch(()=>{})}
+      const sb=document.getElementById("submitBtn");if(sb&&liff.isInClient())sb.lastChild.textContent="確認並送出訂單";
+    }).catch(e=>console.warn("LIFF init failed",e))};
+    document.head.appendChild(sc);
+  }
+  const LINE_SVG='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3C6.5 3 2 6.6 2 11c0 3.9 3.5 7.2 8.3 7.9.3.1.8.2.9.5.1.3.1.7 0 1l-.1.9c0 .3-.2 1 .9.5s5.9-3.5 8-6c1.4-1.6 2-3.2 2-4.8C22 6.6 17.5 3 12 3Zm-3.9 10.6H6.2a.5.5 0 0 1-.5-.5V9.2a.5.5 0 0 1 1 0v3.4h1.4a.5.5 0 0 1 0 1Zm2 -.5a.5.5 0 0 1-1 0V9.2a.5.5 0 0 1 1 0Zm4.6 0a.5.5 0 0 1-.9.3l-2-2.7v2.4a.5.5 0 0 1-1 0V9.2a.5.5 0 0 1 .9-.3l2 2.7V9.2a.5.5 0 0 1 1 0Zm3.1-2.5a.5.5 0 0 1 0 1h-1.4v.9h1.4a.5.5 0 0 1 0 1h-1.9a.5.5 0 0 1-.5-.5V9.2c0-.3.2-.5.5-.5h1.9a.5.5 0 0 1 0 1h-1.4v.9Z"/></svg>';
+  const PAY=[
+    {id:"transfer",name:"銀行轉帳 / ATM",note:"送出後顯示匯款帳號，轉帳後告知末五碼"},
+    {id:"cod",name:"貨到付款 / 取貨付款",note:"宅配或超商取貨時付現",only:["home","cvs"]},
+    {id:"online",name:"信用卡、LINE Pay 線上付款",note:"金流串接中，即將開放",disabled:true}
+  ];
+  const $=s=>document.querySelector(s);
+  const fmt=n=>"NT$"+n.toLocaleString("zh-TW");
+  const store={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+  let cart=store.get("usc-cart")||{};
+  if(typeof cart!=="object"||Array.isArray(cart))cart={};
+  // 首次造訪放一包示範商品，讓訂購區不是空白
+  if(store.get("usc-seeded")===null&&Object.keys(cart).length===0){cart={original:2};store.set("usc-seeded",1)}
+  let ship="home",pay="transfer";
+
+  function imgHTML(p){
+    if(p.img==="trio")return `<div class="multi"><img src="${IMG.bag}" alt=""><img src="${IMG.bag}" alt="${p.name}"><img src="${IMG.bag}" alt=""></div>`;
+    if(p.img==="gift")return `<div class="giftbox"><span class="bow" aria-hidden="true"></span><span class="lid" aria-hidden="true"></span><img src="${IMG.logo}" alt="${p.name}"></div>`;
+    return `<img src="${IMG[p.img]}" alt="${p.name}">`;
+  }
+  function thumb(p){return p.img==="bowl"?IMG.bowl:IMG.bag}
+
+  function renderProducts(){
+    $("#productGrid").innerHTML=PRODUCTS.map(p=>`
+      <article class="card">
+        <div class="card-img${p.img==="bowl"?" bowl":""}">${imgHTML(p)}${p.tag?`<span class="tag">${p.tag}</span>`:""}<span class="demo">示意圖</span></div>
+        <div class="card-body">
+          <h3>${p.name}</h3>
+          <p class="spec">${p.spec}</p>
+          <p class="desc">${p.desc}</p>
+          <div>
+            <div class="price-row"><span class="price"><small>NT$</small>${p.price.toLocaleString("zh-TW")}</span><span class="tbd">價格待確認</span></div>
+            <div class="buy-row" style="margin-top:10px">
+              <div class="qty"><button type="button" data-step="-1" data-for="${p.id}" aria-label="減少">−</button><input id="q-${p.id}" type="number" min="1" max="99" value="1" aria-label="${p.name} 數量"><button type="button" data-step="1" data-for="${p.id}" aria-label="增加">+</button></div>
+              <button class="btn btn-primary" type="button" data-add="${p.id}">加入購物車</button>
+            </div>
+            <p class="added" id="ok-${p.id}" aria-live="polite"></p>
+          </div>
+        </div>
+      </article>`).join("");
+  }
+
+  function totals(){
+    let count=0,sub=0;
+    for(const [id,q] of Object.entries(cart)){const p=PRODUCTS.find(x=>x.id===id);if(!p)continue;count+=q;sub+=p.price*q}
+    const s=SHIP.find(x=>x.id===ship);
+    const fee=count===0?0:(sub>=FREE?0:s.fee);
+    return {count,sub,fee,total:sub+fee};
+  }
+
+  function renderCart(){
+    const items=Object.entries(cart).filter(([id])=>PRODUCTS.some(p=>p.id===id));
+    const t=totals();
+    $("#cartCount").textContent=t.count;
+    $("#mbarCount").textContent=t.count+" 件商品";
+    $("#mbarTotal").textContent=fmt(t.total);
+    $("#mbar").classList.toggle("show",t.count>0);
+    document.body.classList.toggle("has-bar",t.count>0);
+    {const sb=$("#submitBtn");if(sb)sb.disabled=t.count===0}
+    if(!items.length){
+      $("#cartBody").innerHTML=`<div class="empty"><img src="${IMG.logo}" alt=""><p>購物車還是空的。<br>先去挑一包香脆蝦餅吧！</p><a class="btn btn-ghost" href="#products">去選購</a></div>`;
+      return;
+    }
+    const left=Math.max(0,FREE-t.sub);
+    $("#cartBody").innerHTML=`<ul class="cart-list">${items.map(([id,q])=>{const p=PRODUCTS.find(x=>x.id===id);return `
+      <li class="cart-item"><img src="${thumb(p)}" alt="">
+        <div><div class="nm">${p.name}</div><div class="sub">${p.spec}・${fmt(p.price)}</div>
+          <div class="qty sm" style="margin-top:6px"><button type="button" data-cstep="-1" data-for="${id}" aria-label="減少 ${p.name}">−</button><input type="number" min="1" max="99" value="${q}" data-cset="${id}" aria-label="${p.name} 數量"><button type="button" data-cstep="1" data-for="${id}" aria-label="增加 ${p.name}">+</button></div></div>
+        <div class="right"><span class="line">${fmt(p.price*q)}</span><button class="rm" type="button" data-rm="${id}">移除</button></div></li>`}).join("")}</ul>
+      <div class="ship-hint">${left>0?`再買 <b>${fmt(left)}</b> 就免運費！`:`🎉 已達免運門檻 ${fmt(FREE)}`}<div class="ship-bar"><i style="width:${Math.min(100,t.sub/FREE*100)}%"></i></div></div>
+      <div class="totals"><div><span>商品小計</span><span>${fmt(t.sub)}</span></div><div><span>運費（${SHIP.find(x=>x.id===ship).name}）</span><span>${t.fee===0?"免運":fmt(t.fee)}</span></div><div class="grand"><span>應付總額</span><span>${fmt(t.total)}</span></div></div>`;
+  }
+
+  function renderChoices(){
+    $("#shipChoices").innerHTML=SHIP.map(s=>`<label class="choice"><input type="radio" name="ship" value="${s.id}" ${s.id===ship?"checked":""}><span><b>${s.name}</b><small>${s.note}</small></span><span class="fee">${s.fee?fmt(s.fee):"免運"}</span></label>`).join("");
+    $("#payChoices").innerHTML=PAY.map(p=>{const off=p.disabled||(p.only&&!p.only.includes(ship));return `<label class="choice"><input type="radio" name="pay" value="${p.id}" ${p.id===pay&&!off?"checked":""} ${off?"disabled":""}><span><b>${p.name}</b><small>${p.disabled?p.note:(off?"此取貨方式不適用":p.note)}</small></span></label>`}).join("");
+    const addr=$("#addrField"),lab=$("#addrLabel"),inp=$("#f-addr");
+    if(ship==="pickup"){addr.hidden=true}else{addr.hidden=false;lab.innerHTML=(ship==="cvs"?"取貨門市（超商＋門市名稱）":"收件地址")+'<span class="req">*</span>';inp.placeholder=ship==="cvs"?"例：7-11 民生門市":"縣市、區、路段、門牌";inp.autocomplete=ship==="cvs"?"off":"street-address"}
+  }
+
+  function setQty(id,q){q=Math.max(0,Math.min(99,q|0));if(q===0)delete cart[id];else cart[id]=q;store.set("usc-cart",cart);renderCart()}
+
+  document.addEventListener("click",e=>{
+    const b=e.target.closest("button");if(!b)return;
+    if(b.dataset.step){const i=$("#q-"+b.dataset.for);i.value=Math.max(1,Math.min(99,(+i.value||1)+(+b.dataset.step)))}
+    if(b.dataset.add){const id=b.dataset.add,q=Math.max(1,+$("#q-"+id).value||1);setQty(id,(cart[id]||0)+q);const ok=$("#ok-"+id);ok.textContent="✓ 已加入 "+q+" 件";clearTimeout(ok._t);ok._t=setTimeout(()=>ok.textContent="",2200)}
+    if(b.dataset.cstep){const id=b.dataset.for;setQty(id,(cart[id]||0)+(+b.dataset.cstep))}
+    if(b.dataset.rm)setQty(b.dataset.rm,0);
+  });
+  document.addEventListener("change",e=>{
+    const t=e.target;
+    if(t.dataset.cset)setQty(t.dataset.cset,+t.value||0);
+    if(t.name==="ship"){ship=t.value;const pp=PAY.find(p=>p.id===pay);if(pp.only&&!pp.only.includes(ship))pay="transfer";renderChoices();renderCart()}
+    if(t.name==="pay")pay=t.value;
+  });
+
+  function setErr(id,msg){const f=$("#"+id).closest(".field");f.classList.toggle("invalid",!!msg);f.querySelector(".err").textContent=msg||"";return !msg}
+
+  $("#orderForm").addEventListener("submit",e=>{
+    e.preventDefault();
+    const name=$("#f-name").value.trim(),phone=$("#f-phone").value.replace(/[\s-]/g,""),addr=$("#f-addr").value.trim(),note=$("#f-note").value.trim();
+    let ok=true;
+    ok=setErr("f-name",name?"":"請填寫收件人姓名")&&ok;
+    ok=setErr("f-phone",/^09\d{8}$/.test(phone)?"":"請填寫 09 開頭的 10 碼手機號碼")&&ok;
+    if(ship!=="pickup")ok=setErr("f-addr",addr?"":(ship==="cvs"?"請填寫取貨門市":"請填寫收件地址"))&&ok;else setErr("f-addr","");
+    const agree=$("#f-agree").checked;
+    if(!agree){$("#f-agree").closest(".agree").style.color="var(--red)";ok=false}else $("#f-agree").closest(".agree").style.color="";
+    if(!ok){const first=document.querySelector(".field.invalid input")||$("#f-agree");first&&first.focus();return}
+    const t=totals();if(!t.count)return;
+    const d=new Date(),pad=n=>String(n).padStart(2,"0");
+    const no="USC"+d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+"-"+String(Math.floor(1000+Math.random()*9000));
+    const s=SHIP.find(x=>x.id===ship),p=PAY.find(x=>x.id===pay);
+    const lines=Object.entries(cart).map(([id,q])=>{const pr=PRODUCTS.find(x=>x.id===id);return `・${pr.name}（${pr.spec}）× ${q}　${fmt(pr.price*q)}`});
+    const text=[`【舅是好蝦 訂單】${no}`,...lines,`商品小計：${fmt(t.sub)}`,`運費：${t.fee?fmt(t.fee):"免運"}`,`應付總額：${fmt(t.total)}`,``,`收件人：${name}`,`手機：${phone}`,`取貨方式：${s.name}`,ship!=="pickup"?`${ship==="cvs"?"門市":"地址"}：${addr}`:null,`付款方式：${p.name}`,note?`備註：${note}`:null].filter(x=>x!==null).join("\n");
+    const payInfo=pay==="transfer"?`<p>請於 3 天內匯款 <b>${fmt(t.total)}</b> 至：<br>（銀行代碼）○○銀行 帳號 000-000-000000 <span class="tbd">待提供</span><br>完成後請告知帳號末五碼。</p>`:`<p>將於${ship==="cvs"?"超商取貨":"收件"}時付款 <b>${fmt(t.total)}</b>。</p>`;
+    const clearCart=()=>{cart={};store.set("usc-cart",cart);renderCart();document.getElementById("order").scrollIntoView({behavior:"smooth"})};
+    const showLinePanel=()=>{
+    $("#formPanel").innerHTML=`<div class="done" tabindex="-1" id="doneBox"><img src="${IMG.logo}" alt=""><h3>最後一步：用 LINE 傳送訂單</h3><p class="no">${no}</p>
+      <div class="acts"><a class="btn btn-line submit" id="lineBtn" href="${lineURL(text)}" target="_blank" rel="noopener">${LINE_SVG}開啟 LINE 傳送訂單</a>
+      <div class="row2"><button class="btn btn-ghost" type="button" id="copyBtn">複製訂單</button><button class="btn btn-ghost" type="button" id="againBtn">繼續購物</button></div></div>
+      <p class="form-note" id="copyMsg">${LINE_OA?"會開啟與舅是好蝦的 LINE 聊天室，按「傳送」即可。":"在 LINE 選擇「舅是好蝦」後按「傳送」即可。"}<br>打不開 LINE？按「複製訂單」再貼到 LINE 聊天室。</p>
+      ${payInfo}<pre id="orderText">${text.replace(/</g,"&lt;")}</pre></div>`;
+    $("#doneBox").focus();
+    $("#copyBtn").addEventListener("click",()=>{
+      const done=()=>$("#copyMsg").textContent="已複製，打開 LINE 貼給舅是好蝦就可以囉！";
+      const fallback=()=>{const r=document.createRange();r.selectNodeContents($("#orderText"));const sel=getSelection();sel.removeAllRanges();sel.addRange(r);$("#copyMsg").textContent="已選取訂單明細，請長按或按複製。"};
+      try{navigator.clipboard.writeText(text).then(done,fallback)}catch(err){fallback()}
+    });
+    $("#againBtn").addEventListener("click",()=>location.reload());
+      clearCart();
+    };
+    if(liffReady&&liff.isInClient()){
+      const sb=$("#submitBtn");sb.disabled=true;sb.lastChild.textContent="傳送中…";
+      liff.sendMessages([{type:"text",text}]).then(()=>{
+        $("#formPanel").innerHTML=`<div class="done" tabindex="-1" id="doneBox"><img src="${IMG.logo}" alt=""><h3>訂單已傳到聊天室！</h3><p class="no">${no}</p>${payInfo}<p class="form-note">我們確認後會在 LINE 回覆你。</p><div class="acts"><button class="btn btn-line submit" type="button" id="closeBtn">${LINE_SVG}回到聊天室</button></div></div>`;
+        $("#closeBtn").addEventListener("click",()=>liff.closeWindow());
+        clearCart();
+      }).catch(err=>{console.warn(err);showLinePanel()});
+    }else showLinePanel();
+  });
+
+  renderProducts();renderChoices();renderCart();
+})();
+</script>
