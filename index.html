@@ -190,6 +190,13 @@ section.block{padding-block:72px}
 .price-row{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
 .price{font-family:var(--f-display);font-weight:900;font-size:1.45rem;color:var(--red);font-variant-numeric:tabular-nums}
 .price small{font-size:.8rem;margin-right:2px}
+.was{color:var(--brown-soft);text-decoration:line-through;font-size:.85rem;font-weight:500;margin-right:6px;font-variant-numeric:tabular-nums}
+.price .was{font-family:var(--f-body,inherit)}
+.promo-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--red);color:var(--on-orange);border-radius:14px;padding:12px 16px;margin:0 0 18px;font-weight:700}
+.promo-bar b{font-family:var(--f-display);font-size:1.15rem}
+.promo-bar small{font-weight:500;opacity:.9}
+.promo-top{background:var(--red);color:var(--on-orange);text-align:center;font-weight:700;font-size:.9rem;padding:6px 12px}
+.promo-top[hidden],.promo-bar[hidden]{display:none}
 .buy-row{display:flex;gap:8px;align-items:center}
 .qty{display:inline-flex;align-items:center;border:2px solid var(--line);border-radius:999px;overflow:hidden;background:var(--cream)}
 .qty button{width:34px;height:36px;border:0;background:transparent;cursor:pointer;font-size:1.1rem;font-weight:700}
@@ -349,6 +356,7 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
         <h2>挑一包，帶回家分享</h2>
         <p>少量手工製作，每週出貨。加入購物車後，到下方填寫訂購資料即可完成訂購。</p>
       </div>
+      <p class="promo-bar" id="promoBar" hidden></p>
       <p class="notice"><span aria-hidden="true">⚑</span><span>以下品項、規格與價格皆為示意，正式上線前會換成實際內容。商品圖取自主視覺，之後可換成實拍照片。</span></p>
       <div class="grid-products" id="productGrid"></div>
     </div>
@@ -399,7 +407,7 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
         <details><summary>運費怎麼算？</summary><p>宅配 NT$150、超商取貨 NT$70，單筆訂單滿 NT$1,200 免運費。也可預約到店自取，不收運費。</p></details>
         <details><summary>可以放多久？怎麼保存？</summary><p>未開封常溫保存約 3 個月，請放在陰涼乾燥處、避免陽光直射。開封後請盡快食用完畢，或用夾子密封保持酥脆。</p></details>
         <details><summary>有哪些過敏原？</summary><p>本產品含有蝦（甲殼類），並在處理其他海鮮的環境製作，對甲殼類或海鮮過敏者請勿食用。</p></details>
-        <details><summary>可以大量訂購或送禮嗎？</summary><p>可以！公司行號、婚禮小物、節慶送禮等大量訂購，請在訂購備註留言，或透過 LINE 聯繫我們報價。</p></details>
+        <details><summary>可以大量訂購嗎？</summary><p>可以！公司行號、活動團購等大量訂購，請在訂購備註留言，或透過 LINE 聯繫我們報價。</p></details>
         <details><summary>收到商品破損怎麼辦？</summary><p>蝦餅較為酥脆，運送中少量碎片屬正常情況。若整包嚴重破損，請於收到後 3 天內拍照聯繫我們處理。</p></details>
       </div>
     </div>
@@ -437,7 +445,7 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
               <div class="choices" id="payChoices"></div>
             </fieldset>
 
-            <div class="field"><label for="f-note">備註</label><textarea id="f-note" name="note" placeholder="希望到貨時段、送禮卡片內容、大量訂購需求…"></textarea></div>
+            <div class="field"><label for="f-note">備註</label><textarea id="f-note" name="note" placeholder="希望到貨時段、大量訂購需求…"></textarea></div>
 
             <label class="agree"><input type="checkbox" id="f-agree" required><span>我已閱讀購買須知，並了解本產品含甲殼類（蝦）。</span></label>
             <p class="err-submit" id="submitErr" role="alert"></p>
@@ -482,8 +490,7 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
   const PRODUCTS=[
     {id:"original",name:"原味手工蝦餅",spec:"單包 100g",price:180,tag:"招牌",img:"bag",desc:"最經典的鮮蝦原味，酥脆不油膩，配茶、配啤酒都對味。"},
     {id:"family",name:"家庭分享包",spec:"大包 250g",price:399,tag:"",img:"bowl",desc:"一家人一起吃剛剛好，追劇、聚會的最佳零嘴。"},
-    {id:"trio",name:"原味三入組",spec:"100g × 3 包",price:499,tag:"人氣",img:"trio",desc:"自己吃、分朋友都方便，比單買更划算。"},
-    {id:"gift",name:"好蝦送禮盒",spec:"100g × 6 包・附提袋",price:990,tag:"送禮",img:"gift",desc:"過年過節、伴手禮首選，可加購手寫祝福卡。"}
+    {id:"trio",name:"原味三入組",spec:"100g × 3 包",price:499,tag:"人氣",img:"trio",desc:"自己吃、分朋友都方便，比單買更划算。"}
   ];
   const SHIP=[
     {id:"home",name:"宅配到府",note:"黑貓或郵局宅配，約 3–5 個工作天出貨",fee:150},
@@ -491,6 +498,9 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
     {id:"pickup",name:"預約自取",note:"自取地點與時間，將由我們另行聯繫確認",fee:0}
   ];
   const FREE=1200;
+  let PROMO=null; // {name,pay_percent,end_at}，由資料庫提供；實際金額以資料庫下單時計算為準
+  const up=p=>PROMO?Math.round(p.price*PROMO.pay_percent/100):p.price;
+  const zhe=v=>(v%10?String(v):String(v/10))+" 折";
   // 訂單資料庫（Supabase）。設定在 config.js；沒設定時只走 LINE 傳送。
   const CFG=window.USC_CONFIG||{};
   const DB=CFG.supabaseUrl&&CFG.supabaseAnonKey?{url:CFG.supabaseUrl,key:CFG.supabaseAnonKey}:null;
@@ -547,7 +557,7 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
           <p class="spec">${esc(p.spec)}</p>
           <p class="desc">${esc(p.desc)}</p>
           <div>
-            <div class="price-row"><span class="price"><small>NT$</small>${p.price.toLocaleString("zh-TW")}</span><span class="tbd">價格待確認</span></div>
+            <div class="price-row"><span class="price">${PROMO?`<s class="was">NT$${p.price.toLocaleString("zh-TW")}</s>`:""}<small>NT$</small>${up(p).toLocaleString("zh-TW")}</span><span class="tbd">價格待確認</span></div>
             <div class="buy-row" style="margin-top:10px">
               <div class="qty"><button type="button" data-step="-1" data-for="${p.id}" aria-label="減少">−</button><input id="q-${p.id}" type="number" min="1" max="99" value="1" aria-label="${esc(p.name)} 數量"><button type="button" data-step="1" data-for="${p.id}" aria-label="增加">+</button></div>
               <button class="btn btn-primary" type="button" data-add="${p.id}">加入購物車</button>
@@ -559,11 +569,11 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
   }
 
   function totals(){
-    let count=0,sub=0;
-    for(const [id,q] of Object.entries(cart)){const p=PRODUCTS.find(x=>x.id===id);if(!p)continue;count+=q;sub+=p.price*q}
+    let count=0,sub=0,list=0;
+    for(const [id,q] of Object.entries(cart)){const p=PRODUCTS.find(x=>x.id===id);if(!p)continue;count+=q;sub+=up(p)*q;list+=p.price*q}
     const s=SHIP.find(x=>x.id===ship);
     const fee=count===0?0:(sub>=FREE?0:s.fee);
-    return {count,sub,fee,total:sub+fee};
+    return {count,sub,list,disc:list-sub,fee,total:sub+fee};
   }
 
   function renderCart(){
@@ -582,11 +592,11 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
     const left=Math.max(0,FREE-t.sub);
     $("#cartBody").innerHTML=`<ul class="cart-list">${items.map(([id,q])=>{const p=PRODUCTS.find(x=>x.id===id);return `
       <li class="cart-item"><img src="${thumb(p)}" alt="">
-        <div><div class="nm">${esc(p.name)}</div><div class="sub">${esc(p.spec)}・${fmt(p.price)}</div>
+        <div><div class="nm">${esc(p.name)}</div><div class="sub">${esc(p.spec)}・${PROMO?`<s class="was">${fmt(p.price)}</s>`:""}${fmt(up(p))}</div>
           <div class="qty sm" style="margin-top:6px"><button type="button" data-cstep="-1" data-for="${id}" aria-label="減少 ${esc(p.name)}">−</button><input type="number" min="1" max="99" value="${q}" data-cset="${id}" aria-label="${esc(p.name)} 數量"><button type="button" data-cstep="1" data-for="${id}" aria-label="增加 ${esc(p.name)}">+</button></div></div>
-        <div class="right"><span class="line">${fmt(p.price*q)}</span><button class="rm" type="button" data-rm="${id}">移除</button></div></li>`}).join("")}</ul>
-      <div class="ship-hint">${left>0?`再買 <b>${fmt(left)}</b> 就免運費！`:`🎉 已達免運門檻 ${fmt(FREE)}`}<div class="ship-bar"><i style="width:${Math.min(100,t.sub/FREE*100)}%"></i></div></div>
-      <div class="totals"><div><span>商品小計</span><span>${fmt(t.sub)}</span></div><div><span>運費（${SHIP.find(x=>x.id===ship).name}）</span><span>${t.fee===0?"免運":fmt(t.fee)}</span></div><div class="grand"><span>應付總額</span><span>${fmt(t.total)}</span></div></div>`;
+        <div class="right"><span class="line">${fmt(up(p)*q)}</span><button class="rm" type="button" data-rm="${id}">移除</button></div></li>`}).join("")}</ul>
+      <div class="ship-hint">${left>0?`再買 <b>${fmt(left)}</b> 就免運費${PROMO?"（以折扣後金額計算）":""}！`:`🎉 已達免運門檻 ${fmt(FREE)}`}<div class="ship-bar"><i style="width:${Math.min(100,t.sub/FREE*100)}%"></i></div></div>
+      <div class="totals">${t.disc>0?`<div><span>原價小計</span><span>${fmt(t.list)}</span></div><div><span>${esc(PROMO.name)}（${zhe(PROMO.pay_percent)}）</span><span>−${fmt(t.disc)}</span></div>`:""}<div><span>商品小計</span><span>${fmt(t.sub)}</span></div><div><span>運費（${SHIP.find(x=>x.id===ship).name}）</span><span>${t.fee===0?"免運":fmt(t.fee)}</span></div><div class="grand"><span>應付總額</span><span>${fmt(t.total)}</span></div></div>`;
   }
 
   function renderChoices(){
@@ -635,15 +645,15 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
         const res=await fetch(DB.url.replace(/\/$/,"")+"/rest/v1/rpc/place_order",{method:"POST",headers:{"Content-Type":"application/json","Content-Profile":"shop",...dbAuth()},
           body:JSON.stringify({p:{name,phone,ship,address:addr,note,items:Object.entries(cart).map(([id,qty])=>({id,qty}))}})});
         const j=await res.json().catch(()=>({}));
-        if(res.ok){no=j.order_no;t={...t,sub:j.subtotal,fee:j.shipping_fee,total:j.total};saved=true}
+        if(res.ok){no=j.order_no;t={...t,sub:j.subtotal,list:j.list_subtotal??j.subtotal,disc:j.discount||0,pname:j.promo_name,fee:j.shipping_fee,total:j.total};saved=true}
         else if(ORDER_ERR[j.message]){sbtn.disabled=false;serr.textContent=ORDER_ERR[j.message];return}
         else console.warn("order save failed",res.status,j);
       }catch(err){console.warn(err)}
       sbtn.disabled=false;
     }
     const s=SHIP.find(x=>x.id===ship),p=PAY.find(x=>x.id===pay);
-    const lines=Object.entries(cart).map(([id,q])=>{const pr=PRODUCTS.find(x=>x.id===id);return `・${pr.name}（${pr.spec}）× ${q}　${fmt(pr.price*q)}`});
-    const text=[`【舅是好蝦 訂單】${no}`,...lines,`商品小計：${fmt(t.sub)}`,`運費：${t.fee?fmt(t.fee):"免運"}`,`應付總額：${fmt(t.total)}`,saved?null:"（系統暫時無法記錄，請以此訊息為準）",``,`收件人：${name}`,`手機：${phone}`,`取貨方式：${s.name}`,ship!=="pickup"?`${ship==="cvs"?"門市":"地址"}：${addr}`:null,`付款方式：${esc(p.name)}`,note?`備註：${note}`:null].filter(x=>x!==null).join("\n");
+    const lines=Object.entries(cart).map(([id,q])=>{const pr=PRODUCTS.find(x=>x.id===id);return `・${pr.name}（${pr.spec}）× ${q}　${fmt(up(pr)*q)}`});
+    const text=[`【舅是好蝦 訂單】${no}`,...lines,t.disc>0?`原價小計：${fmt(t.list)}`:null,t.disc>0?`${t.pname||(PROMO&&PROMO.name)||"活動折扣"}：−${fmt(t.disc)}`:null,`商品小計：${fmt(t.sub)}`,`運費：${t.fee?fmt(t.fee):"免運"}`,`應付總額：${fmt(t.total)}`,saved?null:"（系統暫時無法記錄，請以此訊息為準）",``,`收件人：${name}`,`手機：${phone}`,`取貨方式：${s.name}`,ship!=="pickup"?`${ship==="cvs"?"門市":"地址"}：${addr}`:null,`付款方式：${esc(p.name)}`,note?`備註：${note}`:null].filter(x=>x!==null).join("\n");
     const payInfo=`<p>${ship==="pickup"?"自取時":"收到商品時"}付款 <b>${fmt(t.total)}</b>（${ship==="cvs"?"超商取貨付款":ship==="home"?"宅配貨到付款":"現場付現"}）。</p>`;
     const clearCart=()=>{cart={};store.set("usc-cart",cart);renderCart();document.getElementById("order").scrollIntoView({behavior:"smooth"})};
     const showLinePanel=()=>{
@@ -672,6 +682,19 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
   });
 
   renderProducts();renderChoices();renderCart();
+  function showPromo(){
+    const bar=$("#promoBar");if(!bar)return;
+    if(!PROMO){bar.hidden=true;return}
+    const end=PROMO.end_at?new Date(PROMO.end_at):null,pad=n=>String(n).padStart(2,"0");
+    bar.innerHTML=`<span aria-hidden="true">🎉</span><b>${esc(PROMO.name)}</b><span>全館 ${zhe(PROMO.pay_percent)}</span>${end?`<small>活動至 ${end.getMonth()+1}/${end.getDate()} ${pad(end.getHours())}:${pad(end.getMinutes())}</small>`:""}<small>・免運門檻以折扣後金額計算</small>`;
+    bar.hidden=false;
+  }
+  if(DB){fetch(DB.url.replace(/\/$/,"")+"/rest/v1/rpc/current_promo",{method:"POST",headers:{"Content-Type":"application/json","Content-Profile":"shop",...dbAuth()},body:"{}"})
+    .then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.active||!(j.pay_percent>0&&j.pay_percent<100))return;
+      PROMO={name:String(j.name||"限時優惠"),pay_percent:+j.pay_percent,end_at:j.end_at||null};
+      showPromo();renderProducts();renderCart();
+      if(PROMO.end_at){const ms=Date.parse(PROMO.end_at)-Date.now();if(ms>0&&ms<864e5*20)setTimeout(()=>{PROMO=null;showPromo();renderProducts();renderCart()},ms)}
+    }).catch(()=>{})}
   // 有資料庫時，以資料庫的價格為準更新畫面
   if(DB){fetch(DB.url.replace(/\/$/,"")+"/rest/v1/products?select=id,name,spec,price,tag,description,image_url,sort&order=sort.asc,id.asc",{headers:{"Accept-Profile":"shop",...dbAuth()}})
     .then(r=>r.ok?r.json():null).then(rows=>{if(!Array.isArray(rows))return;

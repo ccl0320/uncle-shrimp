@@ -9,7 +9,7 @@
 <title>舅是好蝦 訂單後台</title>
 <link rel="icon" href="../assets/logo.webp">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap">
-<link rel="stylesheet" href="admin.css?v=20261113c">
+<link rel="stylesheet" href="admin.css?v=20261113d">
 </head>
 <body>
 <header class="bar">
@@ -114,6 +114,24 @@
     </div>
 
     <div id="paneProducts" hidden>
+      <div class="card promo">
+        <h2>促銷活動 <span class="pill" id="promoLive"></span></h2>
+        <label class="check"><input type="checkbox" id="promoOn"> 開啟活動</label>
+        <label for="promoName">活動標語（顯示在網站上，30 字以內）</label>
+        <input id="promoName" maxlength="30" placeholder="例：新開張試行 全館 7 折">
+        <div class="row2">
+          <div><label for="promoPct">折數</label>
+            <select id="promoPct"></select></div>
+          <div><label>範例</label><p class="muted small" id="promoEx"></p></div>
+        </div>
+        <div class="row2">
+          <div><label for="promoStart">開始時間（空白＝立即）</label><input id="promoStart" type="datetime-local"></div>
+          <div><label for="promoEnd">結束時間（空白＝不限）</label><input id="promoEnd" type="datetime-local"></div>
+        </div>
+        <p class="muted small" id="promoNote"></p>
+        <button class="btn primary" type="button" id="promoSave">儲存活動設定</button>
+        <p class="save-msg" id="promoMsg" role="status"></p>
+      </div>
       <div class="ptools">
         <p class="muted small">修改後前台會立即更新。下架的商品顧客看不到也無法下單。</p>
         <button class="btn" type="button" id="newProductBtn">＋ 新增商品</button>
@@ -155,6 +173,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="../config.js?v=20261113b"></script>
-<script src="admin.js?v=20261113c"></script>
+<script src="admin.js?v=20261113d"></script>
 </body>
 </html>

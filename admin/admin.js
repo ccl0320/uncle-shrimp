@@ -56,6 +56,8 @@
       audit: () => rpc("admin_audit_log", { p_limit: 200 }),
       purge: (days) => rpc("purge_old_pii", { p_days: days }),
       products: () => rpc("admin_list_products"),
+      getPromo: () => rpc("admin_get_promo"),
+      setPromo: (p) => rpc("admin_set_promo", { p }),
       saveProduct: (p) => rpc("admin_upsert_product", { p }),
       uploadImage: async (blob) => {
         const path = "p/" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8) + ".webp";
@@ -99,9 +101,13 @@
       audit: () => wait(log.slice()),
       purge: () => wait(0),
       products: () => wait(demoProducts.map((x) => ({ ...x }))),
+      getPromo: () => wait({ ...demoPromo, live: demoLive() }),
+      setPromo: (p) => { Object.assign(demoPromo, p); log.unshift({ at: new Date().toISOString(), actor_email: "owner@example.com", action: "update_promo", detail: { enabled: p.enabled, name: p.name, pay_percent: p.pay_percent } }); return wait({ ...demoPromo, live: demoLive() }); },
       saveProduct: (p) => { const i = demoProducts.findIndex((x) => x.id === p.id); const row = { ...p, price: Number(p.price) }; if (i >= 0) demoProducts[i] = row; else demoProducts.push(row); log.unshift({ at: new Date().toISOString(), actor_email: "owner@example.com", action: i >= 0 ? "update_product" : "create_product", detail: { product: p.id, name: p.name, price_to: p.price } }); return wait(row); },
       uploadImage: (blob) => wait(URL.createObjectURL(blob))
     };
+    var demoPromo = { enabled: true, name: "新開張試行 全館 7 折", pay_percent: 70, start_at: null, end_at: new Date(Date.now() + 17 * 864e5).toISOString(), free_shipping_threshold: 1200 };
+    var demoLive = () => { const n = Date.now(); const on = demoPromo.enabled && demoPromo.pay_percent < 100 && (!demoPromo.start_at || n >= Date.parse(demoPromo.start_at)) && (!demoPromo.end_at || n < Date.parse(demoPromo.end_at)); return on ? { active: true, name: demoPromo.name, pay_percent: demoPromo.pay_percent, end_at: demoPromo.end_at } : { active: false }; };
     var demoProducts = [
       { id: "original", name: "原味手工蝦餅", spec: "單包 100g", price: 180, active: true, sort: 1, tag: "招牌", description: "最經典的鮮蝦原味，酥脆不油膩。", image_url: "../assets/bag.webp" },
       { id: "family", name: "家庭分享包", spec: "大包 250g", price: 399, active: true, sort: 2, tag: "", description: "一家人一起吃剛剛好。", image_url: "../assets/bowl.webp" },
@@ -279,7 +285,8 @@
         ${o.note ? `<dt>顧客備註</dt><dd>${esc(o.note)}</dd>` : ""}
       </dl>
       <table class="items-t"><tbody>
-        ${o.items.map((it) => `<tr><td>${esc(it.name)}<br><span class="muted small">${esc(it.spec)}・${fmt(it.unit_price)} × ${esc(it.qty)}</span></td><td>${fmt(it.unit_price * it.qty)}</td></tr>`).join("")}
+        ${o.items.map((it) => `<tr><td>${esc(it.name)}<br><span class="muted small">${esc(it.spec)}・${it.list_price && it.list_price !== it.unit_price ? `<span class="strike">${fmt(it.list_price)}</span>` : ""}${fmt(it.unit_price)} × ${esc(it.qty)}</span></td><td>${fmt(it.unit_price * it.qty)}</td></tr>`).join("")}
+        ${o.discount ? `<tr><td>${esc(o.promo_name || "折扣")}（已折抵 ${fmt(o.discount)}）</td><td></td></tr>` : ""}
         <tr><td>運費</td><td>${o.shipping_fee ? fmt(o.shipping_fee) : "免運"}</td></tr>
         <tr class="total"><td>應收金額</td><td>${fmt(o.total)}</td></tr>
       </tbody></table>
@@ -321,16 +328,16 @@
     $("#paneAudit").hidden = t.dataset.tab !== "audit";
     $("#paneProducts").hidden = t.dataset.tab !== "products";
     if (t.dataset.tab === "audit") loadAudit();
-    if (t.dataset.tab === "products") loadProducts();
+    if (t.dataset.tab === "products") { loadProducts(); loadPromo(); }
   }));
-  const ACTION = { view_order: "查看訂單個資", update_order: "更新訂單", purge_pii: "清除舊個資", create_product: "新增商品", update_product: "修改商品" };
+  const ACTION = { update_promo: "修改促銷活動", view_order: "查看訂單個資", update_order: "更新訂單", purge_pii: "清除舊個資", create_product: "新增商品", update_product: "修改商品" };
   async function loadAudit() {
     $("#auditList").innerHTML = `<li class="muted">載入中…</li>`;
     try {
       const rows = await api.audit();
       $("#auditList").innerHTML = rows.length ? rows.map((r) => {
         const d = r.detail || {};
-        const extra = r.action === "update_order" ? `${STATUS_NAME[d.from] || d.from || ""} → ${STATUS_NAME[d.to] || d.to || ""}` : r.action === "purge_pii" ? `清除 ${d.rows} 筆` : /product/.test(r.action) ? `${d.name || d.product || ""}${d.price_from != null && d.price_from !== d.price_to ? `（${fmt(d.price_from)} → ${fmt(d.price_to)}）` : ""}` : (d.order_no || "");
+        const extra = r.action === "update_order" ? `${STATUS_NAME[d.from] || d.from || ""} → ${STATUS_NAME[d.to] || d.to || ""}` : r.action === "purge_pii" ? `清除 ${d.rows} 筆` : r.action === "update_promo" ? `${d.enabled ? "開啟" : "關閉"}・${d.pay_percent ? zhe(d.pay_percent) : ""}${d.name ? "・" + d.name : ""}` : /product/.test(r.action) ? `${d.name || d.product || ""}${d.price_from != null && d.price_from !== d.price_to ? `（${fmt(d.price_from)} → ${fmt(d.price_to)}）` : ""}` : (d.order_no || "");
         return `<li><time>${esc(new Date(r.at).toLocaleString("zh-TW", { timeZone: "Asia/Taipei", hour12: false }))}</time><span><b>${esc(r.actor_email || "系統排程")}</b> ${esc(ACTION[r.action] || r.action)} ${esc(extra)}</span></li>`;
       }).join("") : `<li class="muted">還沒有紀錄</li>`;
     } catch (e) { $("#auditList").innerHTML = `<li class="err">${esc(msg(e))}</li>`; }
@@ -442,6 +449,43 @@
     });
     setTimeout(() => $("#pName").focus(), 50);
   }
+
+  // ------------------------------------------------------------------
+  // 促銷活動（店長）
+  // ------------------------------------------------------------------
+  function zhe(pct) { return (pct % 10 ? String(pct) : String(pct / 10)) + " 折"; }
+  const toLocal = (iso) => { if (!iso) return ""; const d = new Date(iso); const z = (n) => String(n).padStart(2, "0"); return `${d.getFullYear()}-${z(d.getMonth() + 1)}-${z(d.getDate())}T${z(d.getHours())}:${z(d.getMinutes())}`; };
+  const PROMO_ERR = { invalid_percent: "折數不正確。", invalid_dates: "結束時間要晚於開始時間。", invalid_promo_name: "標語請在 30 字以內。", owner_only: "只有店長帳號可以修改活動。" };
+  $("#promoPct").innerHTML = [95, 90, 88, 85, 80, 75, 70, 65, 60, 50].map((v) => `<option value="${v}">${zhe(v)}（付 ${v}%）</option>`).join("");
+  let promoFree = 1200;
+  function promoExample() { const v = +$("#promoPct").value; $("#promoEx").textContent = `原價 NT$170 → NT$${Math.round(170 * v / 100)}；折扣後滿 ${fmt(promoFree)} 免運`; }
+  $("#promoPct").addEventListener("change", promoExample);
+  function showLive(live) { const el = $("#promoLive"); el.className = "pill " + (live && live.active ? "on" : "off"); el.textContent = live && live.active ? "進行中" : "未生效"; }
+  async function loadPromo() {
+    try {
+      const p = await api.getPromo();
+      promoFree = p.free_shipping_threshold || 1200;
+      $("#promoOn").checked = !!p.enabled;
+      $("#promoName").value = p.name || "";
+      const pct = +p.pay_percent || 70;
+      if (![...$("#promoPct").options].some((o) => +o.value === pct)) $("#promoPct").insertAdjacentHTML("beforeend", `<option value="${pct}">${zhe(pct)}（付 ${pct}%）</option>`);
+      $("#promoPct").value = String(pct);
+      $("#promoStart").value = toLocal(p.start_at); $("#promoEnd").value = toLocal(p.end_at);
+      showLive(p.live); promoExample();
+      $("#promoNote").textContent = "折扣在顧客下單時由系統計算；免運門檻以折扣後的商品金額判斷。過了結束時間會自動停止。";
+    } catch (e) { $("#promoMsg").textContent = msg(e); }
+  }
+  $("#promoSave").addEventListener("click", async () => {
+    const b = $("#promoSave"), m = $("#promoMsg");
+    const s = $("#promoStart").value, e = $("#promoEnd").value;
+    const row = { enabled: $("#promoOn").checked, name: $("#promoName").value.trim(), pay_percent: +$("#promoPct").value,
+      start_at: s ? new Date(s).toISOString() : null, end_at: e ? new Date(e).toISOString() : null };
+    if (row.start_at && row.end_at && row.end_at <= row.start_at) { m.textContent = PROMO_ERR.invalid_dates; return; }
+    b.disabled = true; m.textContent = "儲存中…";
+    try { const p = await api.setPromo(row); showLive(p.live); m.textContent = p.live && p.live.active ? "已儲存，活動進行中，前台已顯示折扣。" : "已儲存，活動目前未生效。"; }
+    catch (err) { const k = Object.keys(PROMO_ERR).find((x) => (err.message || "").includes(x)); m.textContent = k ? PROMO_ERR[k] : msg(err); }
+    b.disabled = false;
+  });
 
   route();
 })();

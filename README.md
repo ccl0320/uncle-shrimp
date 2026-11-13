@@ -14,6 +14,7 @@
 - `config.js`：Supabase 網址與公開金鑰
 - `admin/`：訂單後台
 - `supabase/schema.sql`：資料表、權限規則、下單與後台函式
+- `supabase/002_products_admin.sql`、`003_promotions.sql`：之後加上的功能，依序在 SQL Editor 執行（可重複執行）
 
 ## 一、建立 Supabase 訂單資料庫
 目前和 melissa-island 共用同一個 Supabase 專案。訂單資料全部放在獨立的 `shop` schema，和小島的 `public.island_docs` 互不影響。
@@ -87,6 +88,14 @@
 - 店長登入後台 → **商品** 分頁：可改名稱、規格、價格、標籤、說明、排序、上下架，上傳商品圖片，或新增商品。存檔後前台立即更新。
 - 需先在 Supabase SQL Editor 執行 `supabase/002_products_admin.sql`（建立圖片儲存空間與權限，只有店長能上傳）。
 - 運費與免運門檻：Supabase **Table Editor → shop → shipping_methods / shop_settings**。
+
+## 促銷活動
+- 需先在 Supabase SQL Editor 執行 `supabase/003_promotions.sql`。
+- 店長登入後台 → **商品** 分頁最上方的「促銷活動」：開關活動、設定折數（例如 7 折＝付 70%）、活動標語、開始與結束時間。結束時間一到自動停止。
+- 前台會顯示活動橫幅、原價劃線與折扣價；購物車與 LINE 訂單會列出原價小計與折抵金額。
+- 實際金額一律由資料庫在下單時計算（每件單價＝原價×折數，四捨五入到元），前端改價無效。
+- **免運門檻以折扣後的商品金額判斷**。
+- 每次修改都會記在「操作紀錄」。
 
 ## 付款
 目前只開放貨到付款／取貨付款／自取付現，線上金流之後再串接。
