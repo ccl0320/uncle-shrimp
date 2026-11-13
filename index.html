@@ -405,7 +405,7 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
       <div class="faq-grid">
         <details open><summary>多久會出貨？</summary><p>蝦餅為小鍋手工現炸，完成訂購並確認付款後，約 3 至 5 個工作天出貨。節慶檔期訂單較多，出貨時間可能延長。</p></details>
         <details><summary>原料是哪裡來的？</summary><p>蝦餅原料（生蝦餅片）是舅舅在印尼工作時找到的穩定來源，進口後在台灣由我們手工油炸、包裝。包裝上會依食品標示規定標示產地資訊。</p></details>
-        <details><summary>運費怎麼算？</summary><p>宅配 NT$150、超商取貨 NT$70，單筆訂單滿 NT$1,200 免運費。也可預約到店自取，不收運費。</p></details>
+        <details><summary>運費怎麼算？</summary><p>宅配 NT$150、超商取貨 NT$70，單筆訂單滿 NT$520 免運費。也可預約到店自取，不收運費。</p></details>
         <details><summary>可以放多久？怎麼保存？</summary><p>未開封常溫保存約 3 個月，請放在陰涼乾燥處、避免陽光直射。開封後請盡快食用完畢，或用夾子密封保持酥脆。</p></details>
         <details><summary>有哪些過敏原？</summary><p>本產品含有蝦（甲殼類），並在處理其他海鮮的環境製作，對甲殼類或海鮮過敏者請勿食用。</p></details>
         <details><summary>可以大量訂購嗎？</summary><p>可以！公司行號、活動團購等大量訂購，請在訂購備註留言，或透過 LINE 聯繫我們報價。</p></details>
@@ -497,7 +497,7 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
     {id:"cvs",name:"超商取貨",note:"7-11 / 全家，填寫取貨門市名稱",fee:70},
     {id:"pickup",name:"預約自取",note:"自取地點與時間，將由我們另行聯繫確認",fee:0}
   ];
-  const FREE=1200;
+  const FREE=520;
   let PROMO=null; // {name,pay_percent,end_at}，由資料庫提供；實際金額以資料庫下單時計算為準
   const up=p=>p.sale_price!=null&&p.sale_price<p.price?p.sale_price:PROMO?Math.round(p.price*PROMO.pay_percent/100):p.price;
   const zhe=v=>(v%10?String(v):String(v/10))+" 折";

@@ -23,6 +23,8 @@ update shop.products set description = '經典原味蝦餅，小鍋現炸、酥�
 update shop.products set price = 100, sale_price = null where id = 'original';
 update shop.products set price = 260, sale_price = null where id = 'trio';
 update shop.shop_settings set promo_enabled = false where id;
+-- 免運門檻改為 $520（兩組三入組）
+update shop.shop_settings set free_shipping_threshold = 520 where id;
 
 -- ---------- 下單（特價優先，其餘套全館折扣） ----------
 create or replace function shop.place_order(p jsonb)

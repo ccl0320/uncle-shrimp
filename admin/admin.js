@@ -77,7 +77,7 @@
       ["黃建國", "0966777888", "cvs", "全家 板橋文化店", [["原味三入組", "100g × 3 包", 499, 2]], "completed", 120, ""],
       ["李淑芬", "0977888999", "home", "台中市西屯區台灣大道三段 99 號", [["家庭分享包", "大包 250g", 399, 1]], "cancelled", 200, "改期再訂"]
     ].map((d, i) => {
-      const sub = d[4].reduce((a, x) => a + x[2] * x[3], 0), fee = sub >= 1200 ? 0 : ({ home: 150, cvs: 70, pickup: 0 })[d[2]];
+      const sub = d[4].reduce((a, x) => a + x[2] * x[3], 0), fee = sub >= 520 ? 0 : ({ home: 150, cvs: 70, pickup: 0 })[d[2]];
       return { id: "demo-" + i, order_no: "USC2611" + (13 - Math.floor(d[6] / 24)).toString().padStart(2, "0") + "-" + (0xA1B2C + i * 4099).toString(16).toUpperCase().slice(0, 5),
         status: d[5], created_at: new Date(now - d[6] * H).toISOString(), customer_name: d[0], phone: d[1], ship_method: d[2],
         ship_name: { home: "宅配到府（貨到付款）", cvs: "超商取貨付款", pickup: "預約自取（付現）" }[d[2]], address: d[3], note: d[7] || null,
@@ -106,7 +106,7 @@
       saveProduct: (p) => { const i = demoProducts.findIndex((x) => x.id === p.id); const row = { ...p, price: Number(p.price), sale_price: p.sale_price === "" || p.sale_price == null ? null : Number(p.sale_price) }; if (row.sale_price != null && row.sale_price >= row.price) return Promise.reject(new Error("invalid_sale")); if (i >= 0) demoProducts[i] = row; else demoProducts.push(row); log.unshift({ at: new Date().toISOString(), actor_email: "owner@example.com", action: i >= 0 ? "update_product" : "create_product", detail: { product: p.id, name: p.name, price_to: p.price } }); return wait(row); },
       uploadImage: (blob) => wait(URL.createObjectURL(blob))
     };
-    var demoPromo = { enabled: false, name: "新開張試行 全館 7 折", pay_percent: 70, start_at: null, end_at: new Date(Date.now() + 17 * 864e5).toISOString(), free_shipping_threshold: 1200 };
+    var demoPromo = { enabled: false, name: "新開張試行 全館 7 折", pay_percent: 70, start_at: null, end_at: new Date(Date.now() + 17 * 864e5).toISOString(), free_shipping_threshold: 520 };
     var demoLive = () => { const n = Date.now(); const on = demoPromo.enabled && demoPromo.pay_percent < 100 && (!demoPromo.start_at || n >= Date.parse(demoPromo.start_at)) && (!demoPromo.end_at || n < Date.parse(demoPromo.end_at)); return on ? { active: true, name: demoPromo.name, pay_percent: demoPromo.pay_percent, end_at: demoPromo.end_at } : { active: false }; };
     var demoProducts = [
       { id: "original", name: "原味手工蝦餅", spec: "單包 100g", price: 100, active: true, sort: 1, tag: "招牌", description: "經典原味蝦餅，小鍋現炸、酥脆不油膩。", image_url: "../assets/bag.webp" },
