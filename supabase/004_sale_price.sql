@@ -8,6 +8,17 @@
 --  - 免運門檻一樣以折扣後的商品金額判斷
 -- =====================================================================
 
+-- 先確認 002、003 已經執行過
+do $$
+begin
+  if not exists (select 1 from information_schema.columns where table_schema = 'shop' and table_name = 'products' and column_name = 'description') then
+    raise exception '請先執行 002_products_admin.sql，再執行 003、004';
+  end if;
+  if not exists (select 1 from information_schema.columns where table_schema = 'shop' and table_name = 'shop_settings' and column_name = 'promo_enabled') then
+    raise exception '請先執行 003_promotions.sql，再執行 004';
+  end if;
+end $$;
+
 alter table shop.products add column if not exists sale_price integer
   check (sale_price is null or sale_price >= 0);
 
