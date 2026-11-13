@@ -14,7 +14,8 @@
 - `config.js`：Supabase 網址與公開金鑰
 - `admin/`：訂單後台
 - `supabase/schema.sql`：資料表、權限規則、下單與後台函式
-- `supabase/002_products_admin.sql`、`003_promotions.sql`、`004_sale_price.sql`、`005_copy.sql`、`006_staff.sql`、`007_qty_limit.sql`、`008_shipping.sql`：之後加上的功能，依序在 SQL Editor 執行（可重複執行）
+- `supabase/002_products_admin.sql`、`003_promotions.sql`、`004_sale_price.sql`、`005_copy.sql`、`006_staff.sql`、`007_qty_limit.sql`、`008_shipping.sql`、`009_security.sql`：之後加上的功能，依序在 SQL Editor 執行（可重複執行）
+- `admin/vendor/`：自架的 supabase-js（後台不從外部 CDN 載入程式；升級時要一起更新 `admin/index.html` 的 integrity 雜湊）
 
 ## 部署：Cloudflare Pages
 1. Cloudflare → **Workers & Pages → Create → Pages → Connect to Git**，授權 GitHub 後選 `uncle-shrimp` repo。

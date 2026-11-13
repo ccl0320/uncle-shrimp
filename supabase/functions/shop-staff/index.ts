@@ -11,7 +11,8 @@ import { createClient } from "npm:@supabase/supabase-js@2.45.4";
 
 // 允許呼叫的後台網址。換網域時：在 Supabase → Edge Functions → Secrets 新增 ALLOWED_ORIGINS
 // （多個用逗號分隔，例如 https://uncle-shrimp.pages.dev,https://www.example.com），不用改程式
-const ALLOWED_ORIGINS = (Deno.env.get("ALLOWED_ORIGINS") || "https://uncle-shrimp.pages.dev,https://ccl0320.github.io")
+// 舊的 GitHub Pages 網址已移除：後台只從 Cloudflare Pages 使用（有完整安全標頭）
+const ALLOWED_ORIGINS = (Deno.env.get("ALLOWED_ORIGINS") || "https://uncle-shrimp.pages.dev")
   .split(",").map((x) => x.trim().replace(/\/$/, "")).filter(Boolean);
 
 function cors(origin: string): Record<string, string> {
