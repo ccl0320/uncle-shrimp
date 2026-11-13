@@ -619,7 +619,8 @@ footer .tbd{background:color-mix(in srgb,var(--cream) 18%,transparent);color:inh
           body:JSON.stringify({p:{name,phone,ship,address:addr,note,items:Object.entries(cart).map(([id,qty])=>({id,qty}))}})});
         const j=await res.json().catch(()=>({}));
         if(res.ok){no=j.order_no;t={...t,sub:j.subtotal,fee:j.shipping_fee,total:j.total};saved=true}
-        else if(res.status>=400&&res.status<500){sbtn.disabled=false;serr.textContent=ORDER_ERR[j.message]||"訂單資料有誤，請檢查後再送出。";return}
+        else if(ORDER_ERR[j.message]){sbtn.disabled=false;serr.textContent=ORDER_ERR[j.message];return}
+        else console.warn("order save failed",res.status,j);
       }catch(err){console.warn(err)}
       sbtn.disabled=false;
     }
